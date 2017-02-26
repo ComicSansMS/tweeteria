@@ -23,6 +23,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -145,21 +146,16 @@ void obtainToken(web::http::oauth1::experimental::oauth1_config& cfg)
 
 int main()
 {
-    web::http::client::http_client client(U("http://www.ghulbus-inc.de/"));
-
     utility::string_t const consumer_key = U("/* redacted */");
     utility::string_t const consumer_secret = U("/* redacted */");
     utility::string_t const temp_endpoint = U("https://api.twitter.com/oauth/request_token");
     utility::string_t const auth_endpoint = U("https://api.twitter.com/oauth/authenticate");
     utility::string_t const token_endpoint = U("https://api.twitter.com/oauth/access_token");
     utility::string_t const callback_uri = U("oob");
-    web::http::oauth1::experimental::oauth1_config cfg(consumer_key,
-                                                       consumer_secret,
-                                                       temp_endpoint,
-                                                       auth_endpoint,
-                                                       token_endpoint,
-                                                       callback_uri,
-                                                       web::http::oauth1::experimental::oauth1_methods::hmac_sha1);
+    auto cfg_ptr = std::make_shared<web::http::oauth1::experimental::oauth1_config>(consumer_key, consumer_secret,
+        temp_endpoint, auth_endpoint, token_endpoint,callback_uri,
+        web::http::oauth1::experimental::oauth1_methods::hmac_sha1);
+    web::http::oauth1::experimental::oauth1_config& cfg = *cfg_ptr;
     auto const opt_token = tokenFromFile();
     if(opt_token) {
         cfg.set_token(*opt_token);
@@ -175,6 +171,56 @@ int main()
     auto const token = cfg.token();
     std::wcout << "Token: Access " << token.access_token() << " Secret " << token.secret() << " Valid " << ((int)token.is_valid_access_token()) << std::endl;
 
+    auto oauth1_handler_ptr = std::make_shared<web::http::oauth1::details::oauth1_handler>(cfg_ptr);
+    web::http::client::http_client client(U("https://api.twitter.com/1.1/"));
+    client.add_handler(oauth1_handler_ptr);
+
+    {
+        web::http::uri_builder builder(U("/account/verify_credentials.json"));
+        client.request(web::http::methods::GET, builder.to_string()).then([](web::http::http_response response)
+        {
+            std::wcout << "Received response:\n" << response.to_string() << std::endl;
+        }).wait();
+    }
+
+    if(0)
+    {
+        web::http::uri_builder builder(U("/friends/list.json"));
+        builder.append_query(U("cursor"), U("1454852922780141802"));
+        client.request(web::http::methods::GET, builder.to_string()).then([](web::http::http_response response)
+        {
+            return response.extract_string();
+        }).then([](utility::string_t const& body) {
+            std::wofstream fout("friends.txt");
+            fout << body;
+        }).wait();
+    }
+
+    if(0)
+    {
+        web::http::uri_builder builder(U("/statuses/user_timeline.json"));
+        builder.append_query(U("user_id"), U("65135642"));
+        builder.append_query(U("max_id"), U("823746483316932608"));
+        client.request(web::http::methods::GET, builder.to_string()).then([](web::http::http_response response)
+        {
+            return response.extract_string();
+        }).then([](utility::string_t const& body) {
+            std::wofstream fout("timeline.txt");
+            fout << body;
+        }).wait();
+    }
+
+    {
+        web::http::uri_builder builder(U("/statuses/lookup.json"));
+        builder.append_query(U("id"), U("828546674175905792"));
+        client.request(web::http::methods::GET, builder.to_string()).then([](web::http::http_response response)
+        {
+            return response.extract_string();
+        }).then([](utility::string_t const& body) {
+            std::wofstream fout("tweet.txt");
+            fout << body;
+        }).wait();
+    }
 
     return 0;
 }
