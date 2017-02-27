@@ -16,6 +16,9 @@
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <ui/main_window.hpp>
+#include <ui/user_widget.hpp>
+
+#include <tweeteria/tweeteria.hpp>
 
 #include <gbBase/Finally.hpp>
 #include <gbBase/Log.hpp>
@@ -44,8 +47,19 @@ int main(int argc, char* argv[])
 
     GHULBUS_LOG(Info, "Tweeteria client up and running.");
 
+    auto users = tweeteria::json_test();
+
     MainWindow main_window;
+    auto user = new UserWidget(users[18], &main_window);
+    main_window.setCentralWidget(user);
+    main_window.setStyleSheet("QMainWindow { background-color: white }");
     main_window.show();
+
+    std::thread([user]() {
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        QPixmap image("gfSnJcYe_400x400.jpg");
+        user->imageArrived(image.scaled(200, 200));
+    }).detach();
 
     return theApp.exec();
 }
