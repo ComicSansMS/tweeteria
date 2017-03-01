@@ -9,13 +9,24 @@ find_package(RapidJSON REQUIRED)
 set(TWEETERIA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
 set(TWEETERIA_HEADERS
+    ${TWEETERIA_INCLUDE_DIR}/tweeteria/entities.hpp
+    ${TWEETERIA_INCLUDE_DIR}/tweeteria/tweet.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/tweeteria.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/user.hpp
 )
 
 set(TWEETERIA_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
 set(TWEETERIA_SOURCES
+    ${TWEETERIA_SOURCE_DIR}/entities.cpp
+    ${TWEETERIA_SOURCE_DIR}/tweet.cpp
     ${TWEETERIA_SOURCE_DIR}/tweeteria.cpp
+    ${TWEETERIA_SOURCE_DIR}/user.cpp
+)
+
+set(TWEETERIA_TEST_DIR ${PROJECT_SOURCE_DIR}/test)
+set(TWEETERIA_TEST_SOURCES
+    ${TWEETERIA_TEST_DIR}/tweeteria.t.cpp
+    ${TWEETERIA_TEST_DIR}/entities.t.cpp
 )
 
 add_library(tweeteria ${TWEETERIA_HEADERS} ${TWEETERIA_SOURCES})
@@ -27,3 +38,15 @@ target_include_directories(tweeteria PUBLIC
 target_link_libraries(tweeteria PUBLIC
     ${CASABLANCA_LIBRARIES}
 )
+
+option(TWEETERIA_BUILD_TESTS "If enabled, builds unit tests along with the library." ON)
+if(TWEETERIA_BUILD_TESTS)
+    find_package(Catch REQUIRED)
+    enable_testing()
+
+    add_executable(test_tweeteria ${TWEETERIA_TEST_SOURCES})
+    target_link_libraries(test_tweeteria PUBLIC tweeteria)
+    target_include_directories(test_tweeteria PUBLIC ${CATCH_INCLUDE_DIR})
+    
+    add_test(NAME Test.Tweeteria COMMAND test_tweeteria)
+endif()

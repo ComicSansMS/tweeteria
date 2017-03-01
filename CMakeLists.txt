@@ -28,10 +28,12 @@ target_link_libraries(tweeteria_test PUBLIC
 
 set(CLIENT_QT_SOURCE_FILES
     ${PROJECT_SOURCE_DIR}/client/ui/main_window.cpp
+    ${PROJECT_SOURCE_DIR}/client/ui/tweet_widget.cpp
     ${PROJECT_SOURCE_DIR}/client/ui/user_widget.cpp
 )
 set(CLIENT_QT_MOC_HEADER_FILES
     ${PROJECT_SOURCE_DIR}/client/ui/main_window.hpp
+    ${PROJECT_SOURCE_DIR}/client/ui/tweet_widget.hpp
     ${PROJECT_SOURCE_DIR}/client/ui/user_widget.hpp
 )
 qt5_wrap_cpp(CLIENT_QT_MOC_SOURCE_FILES ${CLIENT_QT_MOC_HEADER_FILES})
@@ -58,3 +60,8 @@ add_custom_command(TARGET tweeteria_test POST_BUILD
 
 getQt5Dlls(Qt5::Widgets qt_DLLS)
 file(COPY ${qt_DLLS} ${QT5_ADDITIONAL_DLLS} DESTINATION ${PROJECT_BINARY_DIR})
+
+option(TWEETERIA_BUILD_TESTS "If enabled, builds unit tests along with the library." ON)
+if(TWEETERIA_BUILD_TESTS)
+    enable_testing()
+endif()
