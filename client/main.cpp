@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     MainWindow main_window;
 
     QWidget* parent = new QWidget(&main_window);
-    QBoxLayout* parent_layout = new QBoxLayout(QBoxLayout::Direction::TopToBottom, parent);
+    QBoxLayout* parent_layout = new QBoxLayout(QBoxLayout::Direction::LeftToRight, parent);
 
     auto user = new UserWidget(users[18], parent);
     auto list = new QListWidget(parent);
@@ -76,6 +76,9 @@ int main(int argc, char* argv[])
         list_items.back()->setSizeHint(user_widgets.back()->minimumSizeHint());
         list->setItemWidget(list_items.back(), user_widgets.back());
     }
+
+    auto tweet = new TweetWidget(tweets[0], parent);
+    parent_layout->addWidget(tweet);
 
     main_window.setCentralWidget(parent);
     main_window.setStyleSheet("QMainWindow { background-color: white }");
