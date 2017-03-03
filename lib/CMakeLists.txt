@@ -10,6 +10,7 @@ set(TWEETERIA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
 set(TWEETERIA_HEADERS
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/entities.hpp
+    ${TWEETERIA_INCLUDE_DIR}/tweeteria/string_util.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/tweet.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/tweeteria.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/user.hpp
@@ -18,6 +19,7 @@ set(TWEETERIA_HEADERS
 set(TWEETERIA_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
 set(TWEETERIA_SOURCES
     ${TWEETERIA_SOURCE_DIR}/entities.cpp
+    ${TWEETERIA_SOURCE_DIR}/string_util.cpp
     ${TWEETERIA_SOURCE_DIR}/tweet.cpp
     ${TWEETERIA_SOURCE_DIR}/tweeteria.cpp
     ${TWEETERIA_SOURCE_DIR}/user.cpp
@@ -27,6 +29,7 @@ set(TWEETERIA_TEST_DIR ${PROJECT_SOURCE_DIR}/test)
 set(TWEETERIA_TEST_SOURCES
     ${TWEETERIA_TEST_DIR}/tweeteria.t.cpp
     ${TWEETERIA_TEST_DIR}/entities.t.cpp
+    ${TWEETERIA_TEST_DIR}/string_util.t.cpp
 )
 
 add_library(tweeteria ${TWEETERIA_HEADERS} ${TWEETERIA_SOURCES})
