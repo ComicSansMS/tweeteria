@@ -25,16 +25,28 @@ target_link_libraries(tweeteria_test PUBLIC
     tweeteria
 )
 
+set(CLIENT_SOURCE_DIR ${PROJECT_SOURCE_DIR}/client)
 
+set(CLIENT_SOURCE_FILES
+    ${CLIENT_SOURCE_DIR}/image_provider.cpp
+    ${CLIENT_SOURCE_DIR}/web_resource_provider.cpp
+)
+
+set(CLIENT_HEADER_FILES
+    ${CLIENT_SOURCE_DIR}/image_provider.hpp
+    ${CLIENT_SOURCE_DIR}/web_resource_provider.hpp
+)
+
+set(CLIENT_UI_DIR ${CLIENT_SOURCE_DIR}/ui)
 set(CLIENT_QT_SOURCE_FILES
-    ${PROJECT_SOURCE_DIR}/client/ui/main_window.cpp
-    ${PROJECT_SOURCE_DIR}/client/ui/tweet_widget.cpp
-    ${PROJECT_SOURCE_DIR}/client/ui/user_widget.cpp
+    ${CLIENT_UI_DIR}/main_window.cpp
+    ${CLIENT_UI_DIR}/tweet_widget.cpp
+    ${CLIENT_UI_DIR}/user_widget.cpp
 )
 set(CLIENT_QT_MOC_HEADER_FILES
-    ${PROJECT_SOURCE_DIR}/client/ui/main_window.hpp
-    ${PROJECT_SOURCE_DIR}/client/ui/tweet_widget.hpp
-    ${PROJECT_SOURCE_DIR}/client/ui/user_widget.hpp
+    ${CLIENT_UI_DIR}/main_window.hpp
+    ${CLIENT_UI_DIR}/tweet_widget.hpp
+    ${CLIENT_UI_DIR}/user_widget.hpp
 )
 qt5_wrap_cpp(CLIENT_QT_MOC_SOURCE_FILES ${CLIENT_QT_MOC_HEADER_FILES})
 source_group(moc FILES
@@ -42,12 +54,15 @@ source_group(moc FILES
 )
 
 add_executable(tweeteria_client WIN32
-    ${PROJECT_SOURCE_DIR}/client/main.cpp
+    ${CLIENT_SOURCE_DIR}/main.cpp
+    ${CLIENT_SOURCE_FILES}
+    ${CLIENT_HEADER_FILES}
+    ${CLIENT_QT_SOURCE_FILES}
     ${CLIENT_QT_SOURCE_FILES}
     ${CLIENT_QT_MOC_HEADER_FILES}
     ${CLIENT_QT_MOC_SOURCE_FILES}
 )
-target_include_directories(tweeteria_client PUBLIC ${PROJECT_SOURCE_DIR}/client)
+target_include_directories(tweeteria_client PUBLIC ${CLIENT_SOURCE_DIR})
 target_link_libraries(tweeteria_client PUBLIC tweeteria Qt5::Widgets Qt5::WinMain Ghulbus::gbBase)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tweeteria_test)

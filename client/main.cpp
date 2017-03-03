@@ -19,7 +19,11 @@
 #include <ui/user_widget.hpp>
 #include <ui/tweet_widget.hpp>
 
+#include <image_provider.hpp>
+#include <web_resource_provider.hpp>
+
 #include <tweeteria/tweeteria.hpp>
+#include <tweeteria/string_util.hpp>
 
 #include <gbBase/Finally.hpp>
 #include <gbBase/Log.hpp>
@@ -49,6 +53,9 @@ int main(int argc, char* argv[])
     Ghulbus::Log::setLogHandler(top_handler);
 
     GHULBUS_LOG(Info, "Tweeteria client up and running.");
+
+    WebResourceProvider wrp;
+    ImageProvider image_provider(wrp);
 
     auto users = tweeteria::json_test();
     auto tweets = tweeteria::json_test_tweets();
@@ -113,24 +120,11 @@ int main(int argc, char* argv[])
     for(int i=0; i<18; ++i) {
         auto user_widget_i = user_widgets[i];
         auto const img_url = extract_img_url(users[i].profile_image_url_https);
-        web::http::client::http_client cli(img_url.authority());
-        cli.request(web::http::methods::GET, img_url.resource().to_string()).then([](web::http::http_response resp)
-        {
-            return resp.extract_vector();
-        }).then([user_widget_i](std::vector<unsigned char> img)
-        {
-            QPixmap px;
-            px.loadFromData(img.data(), static_cast<uint>(img.size()));
-            user_widget_i->imageArrived(px.scaled(200, 200));
+
+        image_provider.retrieve(tweeteria::convertUtf16ToUtf8(img_url.to_string()), [user_widget_i](QPixmap pic) {
+            user_widget_i->imageArrived(pic.scaled(200, 200));
         });
     }
-
-    /*
-    std::thread([user]() {
-        std::this_thread::sleep_for(std::chrono::seconds(5));
-        QPixmap image("gfSnJcYe_400x400.jpg");
-        user->imageArrived(image.scaled(200, 200));
-    }).detach();*/
 
     return theApp.exec();
 }
