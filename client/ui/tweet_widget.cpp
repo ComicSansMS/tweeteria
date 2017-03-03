@@ -32,6 +32,7 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, QWidget* parent)
 
     m_topRowLayout->addLayout(m_nameLayout);
 
+    m_nameLayout->addStretch();
     m_name->setFont(QFont("Arial", 18, QFont::Bold));
     m_name->setText("User Name");
     m_nameLayout->addWidget(m_name);
@@ -40,6 +41,7 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, QWidget* parent)
     m_twitterName->setFont(QFont("Arial", 12));
     m_twitterName->setStyleSheet("QLabel { color: grey; }");
     m_nameLayout->addWidget(m_twitterName);
+    m_nameLayout->addStretch();
 
     m_layout->addStretch();
     m_text->setFont(QFont("Arial", 12));
