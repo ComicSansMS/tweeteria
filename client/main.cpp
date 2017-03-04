@@ -66,10 +66,25 @@ int main(int argc, char* argv[])
     auto ft_cred = tweeteria.verifyCredentials();
     auto cred = ft_cred.get();
 
+    auto my_friends_ids = tweeteria.getMyFriendsIds();
+    std::vector<tweeteria::UserId> friend_ids;
+    while(!my_friends_ids.done())
+    {
+        auto const new_friends = my_friends_ids.nextPage().get();
+        friend_ids.insert(end(friend_ids), begin(new_friends), end(new_friends));
+    }
+
+    std::vector<tweeteria::User> users;
+    auto friends_pending = tweeteria.getMyFriends();
+    while(!friends_pending.done())
+    {
+        auto const new_friends = friends_pending.nextPage().get();
+        users.insert(end(users), begin(new_friends), end(new_friends));
+    }
+
     WebResourceProvider wrp;
     ImageProvider image_provider(wrp);
 
-    auto users = tweeteria::json_test();
     auto tweets = tweeteria::json_test_tweets();
 
     MainWindow main_window;
@@ -77,19 +92,15 @@ int main(int argc, char* argv[])
     QWidget* parent = new QWidget(&main_window);
     QBoxLayout* parent_layout = new QBoxLayout(QBoxLayout::Direction::LeftToRight, parent);
 
-    auto user = new UserWidget(users[18], parent);
     auto list = new QListWidget(parent);
     list->setMinimumWidth(600);
     parent_layout->addWidget(list);
     list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    auto list_item0 = new QListWidgetItem(list);
-    list_item0->setSizeHint(user->minimumSizeHint());
-    list->setItemWidget(list_item0, user);
 
     std::vector<UserWidget*> user_widgets;
     std::vector<QListWidgetItem*> list_items;
-    for(int i=0; i<18; ++i) {
+    for(std::size_t i=0; i<users.size(); ++i) {
         user_widgets.emplace_back(new UserWidget(users[i], parent));
         list_items.emplace_back(new QListWidgetItem(list));
         list_items.back()->setSizeHint(user_widgets.back()->minimumSizeHint());
@@ -104,20 +115,11 @@ int main(int argc, char* argv[])
     main_window.setStyleSheet("QMainWindow { background-color: white }");
     main_window.show();
 
-    auto const img_url = web::http::uri(tweeteria::convertUtf8ToUtf16(tweeteria::getProfileImageUrlsFromBaseUrl(users[18].profile_image_url_https).original));
-    web::http::client::http_client cli(img_url.authority());
-    cli.request(web::http::methods::GET, img_url.resource().to_string()).then([](web::http::http_response resp)
-    {
-        return resp.extract_vector();
-    }).then([user](std::vector<unsigned char> img)
-    {
-        QPixmap px;
-        px.loadFromData(img.data(), static_cast<uint>(img.size()));
-        user->imageArrived(px.scaled(200, 200));
-    });
-    for(int i=0; i<18; ++i) {
+    for(std::size_t i=0; i<users.size(); ++i) {
         auto user_widget_i = user_widgets[i];
-        auto const img_url = web::http::uri(tweeteria::convertUtf8ToUtf16(tweeteria::getProfileImageUrlsFromBaseUrl(users[i].profile_image_url_https).original));
+        auto const img_url = web::http::uri(
+            tweeteria::convertUtf8ToUtf16(
+                tweeteria::getProfileImageUrlsFromBaseUrl(users[i].profile_image_url_https).original));
 
         image_provider.retrieve(tweeteria::convertUtf16ToUtf8(img_url.to_string()), [user_widget_i](QPixmap pic) {
             user_widget_i->imageArrived(pic.scaledToHeight(200, Qt::SmoothTransformation));

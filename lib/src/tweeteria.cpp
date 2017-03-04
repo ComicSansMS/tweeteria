@@ -138,6 +138,9 @@ struct Tweeteria::Pimpl
 
     pplx::task<std::tuple<Cursor, std::vector<UserId>>> getFriendsIds(
         bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id);
+
+    pplx::task<std::tuple<Cursor, std::vector<User>>> getFriends(
+        bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id);
 };
 
 Tweeteria::Tweeteria(OAuthCredentials const& credentials)
@@ -206,18 +209,17 @@ pplx::task<std::tuple<Cursor, std::vector<UserId>>> Tweeteria::getFriendsIds(Use
     return m_pimpl->getFriendsIds(true, user_id, std::string(), cursor_id);
 }
 
-
 pplx::task<std::tuple<Cursor, std::vector<UserId>>> Tweeteria::Pimpl::getFriendsIds(
     bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id)
 {
     web::http::uri_builder request_uri(U("/friends/ids.json"));
     if(use_id) {
         if(user_id.id != 0) {
-            request_uri.append_query(U("user"), user_id.id);
+            request_uri.append_query(U("user_id"), user_id.id);
         }
     } else {
         if(!user_name.empty()) {
-            request_uri.append_query(U("screen_name"), convertUtf8ToUtf16(user_name));
+            request_uri.append_query(U("screen_name"), toUtilString(user_name));
         }
     }
     request_uri.append_query(U("cursor"), cursor_id.id);
@@ -242,6 +244,84 @@ pplx::task<std::tuple<Cursor, std::vector<UserId>>> Tweeteria::Pimpl::getFriends
     });
 }
 
+MultiPageResult<std::vector<User>> Tweeteria::getMyFriends()
+{
+    return MultiPageResult<std::vector<User>>([this](CursorId cursor_id) {
+        return m_pimpl->getFriends(true, UserId(0), std::string(), cursor_id);
+    });
+}
+
+pplx::task<std::tuple<Cursor, std::vector<User>>> Tweeteria::Pimpl::getFriends(
+    bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id)
+{
+    web::http::uri_builder request_uri(U("/friends/list.json"));
+    if(use_id) {
+        if(user_id.id != 0) {
+            request_uri.append_query(U("user_id"), user_id.id);
+        }
+    } else {
+        if(!user_name.empty()) {
+            request_uri.append_query(U("screen_name"), toUtilString(user_name));
+        }
+    }
+    request_uri.append_query(U("cursor"), cursor_id.id);
+    web::http::http_request request(web::http::methods::GET);
+    request.set_request_uri(request_uri.to_uri());
+
+    return http_client.request(request).then([](web::http::http_response response) {
+        if(response.status_code() != web::http::status_codes::OK) {
+            throw APIProtocolViolation("Unexpected http return code for friends/list.");
+        }
+        return response.extract_utf8string();
+    }).then([](std::string body) {
+        rapidjson::Document d;
+        d.Parse(body);
+        std::vector<User> ret;
+        auto const& users = d["users"];
+        ret.reserve(users.Size());
+        std::transform(users.Begin(), users.End(), std::back_inserter(ret), User::fromJSon);
+        auto const cursor = Cursor::fromJSon(d);
+        return std::make_tuple(cursor, ret);
+    });
+}
+
+
+
+pplx::task<std::vector<User>> Tweeteria::getUsers(std::vector<UserId> const& user_ids)
+{
+    if(user_ids.empty()) { return pplx::task_from_result(std::vector<User>()); }
+    if(user_ids.size() > 100) { throw InvalidArgument("Not more than 100 ids per request allowed."); }
+
+    std::string csv_list_acc;
+    bool is_first = true;
+    for(auto const& id : user_ids) {
+        if(is_first) {
+            is_first = false;
+        } else {
+            csv_list_acc.append(",");
+        }
+        csv_list_acc.append(std::to_string(id.id));
+    }
+    auto const csv_list = toUtilString(csv_list_acc);
+    web::http::uri_builder request_uri(U("/users/lookup.json"));
+    request_uri.append_query(U("user_id"), csv_list);
+    web::http::http_request request(web::http::methods::GET);
+    request.set_request_uri(request_uri.to_uri());
+    return m_pimpl->http_client.request(request).then([](web::http::http_response response)
+    {
+        if(response.status_code() != web::http::status_codes::OK) {
+            throw APIProtocolViolation("Unexpected http return code for friends/ids.");
+        }
+        return response.extract_utf8string();
+    }).then([](std::string body) {
+        rapidjson::Document d;
+        d.Parse(body);
+        std::vector<User> ret;
+        ret.reserve(d.Size());
+        std::transform(d.Begin(), d.End(), std::back_inserter(ret), User::fromJSon);
+        return ret;
+    });
+}
 
 std::ostream& operator<<(std::ostream& os, User const& u)
 {
