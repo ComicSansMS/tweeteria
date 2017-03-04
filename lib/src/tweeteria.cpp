@@ -10,9 +10,11 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/document.h>
 
+#include <algorithm>
 #include <exception>
 #include <iostream>
 #include <istream>
+#include <iterator>
 #include <memory>
 #include <ostream>
 #include <fstream>
@@ -126,12 +128,16 @@ struct Tweeteria::Pimpl
     std::shared_ptr<web::http::oauth1::experimental::oauth1_config> oauth_config;
     std::shared_ptr<web::http::oauth1::details::oauth1_handler> oauth_handler;
     web::http::client::http_client http_client;
+
     Pimpl(OAuthCredentials const& credentials)
         :oauth_handler(std::make_shared<web::http::oauth1::details::oauth1_handler>(createOAuthConfig(credentials))),
          http_client(Endpoints::twitter_api_endpoint())
     {
         http_client.add_handler(oauth_handler);
     }
+
+    pplx::task<std::tuple<Cursor, std::vector<UserId>>> getFriendsIds(
+        bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id);
 };
 
 Tweeteria::Tweeteria(OAuthCredentials const& credentials)
@@ -164,9 +170,75 @@ pplx::task<VerificationResult> Tweeteria::verifyCredentials()
                 return VerificationResult{ false, Errors::fromJSon(d) };
             });
         } else {
-            return pplx::task_from_exception<VerificationResult>(
-                std::make_exception_ptr(APIProtocolViolation("Unexpected http return code for verify.")));
+            throw APIProtocolViolation("Unexpected http return code for account/verify_credentials.");
         }
+    });
+}
+
+MultiPageResult<std::vector<UserId>> Tweeteria::getMyFriendsIds()
+{
+    return MultiPageResult<std::vector<UserId>>([this](CursorId cursor_id) {
+        return getFriendsIds(UserId(0), cursor_id);
+    });
+}
+
+MultiPageResult<std::vector<UserId>> Tweeteria::getFriendsIds(UserId user_id)
+{
+    return MultiPageResult<std::vector<UserId>>([this, user_id](CursorId cursor_id) {
+        return getFriendsIds(user_id, cursor_id);
+    });
+}
+
+MultiPageResult<std::vector<UserId>> Tweeteria::getFriendsIds(std::string const& user_name)
+{
+    return MultiPageResult<std::vector<UserId>>([this, user_name](CursorId cursor_id) {
+        return getFriendsIds(user_name, cursor_id);
+    });
+}
+
+pplx::task<std::tuple<Cursor, std::vector<UserId>>> Tweeteria::getFriendsIds(std::string const& user_name, CursorId cursor_id)
+{
+    return m_pimpl->getFriendsIds(false, UserId(), user_name, cursor_id);
+}
+
+pplx::task<std::tuple<Cursor, std::vector<UserId>>> Tweeteria::getFriendsIds(UserId user_id, CursorId cursor_id)
+{
+    return m_pimpl->getFriendsIds(true, user_id, std::string(), cursor_id);
+}
+
+
+pplx::task<std::tuple<Cursor, std::vector<UserId>>> Tweeteria::Pimpl::getFriendsIds(
+    bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id)
+{
+    web::http::uri_builder request_uri(U("/friends/ids.json"));
+    if(use_id) {
+        if(user_id.id != 0) {
+            request_uri.append_query(U("user"), user_id.id);
+        }
+    } else {
+        if(!user_name.empty()) {
+            request_uri.append_query(U("screen_name"), convertUtf8ToUtf16(user_name));
+        }
+    }
+    request_uri.append_query(U("cursor"), cursor_id.id);
+    web::http::http_request request(web::http::methods::GET);
+    request.set_request_uri(request_uri.to_uri());
+
+    return http_client.request(request).then([](web::http::http_response response) {
+        if(response.status_code() != web::http::status_codes::OK) {
+            throw APIProtocolViolation("Unexpected http return code for friends/ids.");
+        }
+        return response.extract_utf8string();
+    }).then([](std::string body) {
+        rapidjson::Document d;
+        d.Parse(body);
+        std::vector<UserId> ret;
+        auto const& ids = d["ids"];
+        ret.reserve(ids.Size());
+        std::transform(ids.Begin(), ids.End(), std::back_inserter(ret),
+                       [](rapidjson::Value const& v) { return UserId(v.GetUint64()); });
+        auto const cursor = Cursor::fromJSon(d);
+        return std::make_tuple(cursor, ret);
     });
 }
 

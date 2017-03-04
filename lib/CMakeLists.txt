@@ -9,9 +9,11 @@ find_package(RapidJSON REQUIRED)
 set(TWEETERIA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
 set(TWEETERIA_HEADERS
+    ${TWEETERIA_INCLUDE_DIR}/tweeteria/cursor.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/entities.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/error.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/exceptions.hpp
+    ${TWEETERIA_INCLUDE_DIR}/tweeteria/id_types.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/image_util.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/string_util.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/tweet.hpp
@@ -21,6 +23,7 @@ set(TWEETERIA_HEADERS
 
 set(TWEETERIA_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
 set(TWEETERIA_SOURCES
+    ${TWEETERIA_SOURCE_DIR}/cursor.cpp
     ${TWEETERIA_SOURCE_DIR}/entities.cpp
     ${TWEETERIA_SOURCE_DIR}/error.cpp
     ${TWEETERIA_SOURCE_DIR}/image_util.cpp

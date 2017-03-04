@@ -2,6 +2,8 @@
 #ifndef TWEETERIA_INCLUDE_GUARD_TWEET_HPP
 #define TWEETERIA_INCLUDE_GUARD_TWEET_HPP
 
+#include <tweeteria/id_types.hpp>
+
 #include <rapidjson/fwd.h>
 
 #include <cstdint>
@@ -10,9 +12,9 @@
 namespace tweeteria
 {
 struct Tweet {
-    std::uint64_t id;
+    TweetId id;
     std::string text;
-    std::uint64_t user_id;
+    UserId user_id;
 
     static Tweet fromJSon(rapidjson::Value const& val);
 };

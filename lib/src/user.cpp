@@ -9,7 +9,7 @@ User User::fromJSon(rapidjson::Value const& val)
 {
     if(!val.IsObject()) { throw std::runtime_error(""); }
     User ret;
-    ret.id = val["id"].GetUint64();
+    ret.id = UserId(val["id"].GetUint64());
     ret.name = val["name"].GetString();
     ret.screen_name = val["screen_name"].GetString();
     ret.description = val["description"].GetString();

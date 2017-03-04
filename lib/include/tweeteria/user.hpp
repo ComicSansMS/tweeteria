@@ -2,6 +2,8 @@
 #ifndef TWEETERIA_INCLUDE_GUARD_USER_HPP
 #define TWEETERIA_INCLUDE_GUARD_USER_HPP
 
+#include <tweeteria/id_types.hpp>
+
 #include <rapidjson/fwd.h>
 
 #include <cstdint>
@@ -10,7 +12,7 @@
 namespace tweeteria
 {
 struct User {
-    std::uint64_t id;
+    UserId id;
     std::string name;
     std::string screen_name;
     std::string description;
