@@ -10,6 +10,7 @@ set(TWEETERIA_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 
 set(TWEETERIA_HEADERS
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/entities.hpp
+    ${TWEETERIA_INCLUDE_DIR}/tweeteria/error.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/exceptions.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/image_util.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/string_util.hpp
@@ -21,6 +22,7 @@ set(TWEETERIA_HEADERS
 set(TWEETERIA_SOURCE_DIR ${PROJECT_SOURCE_DIR}/src)
 set(TWEETERIA_SOURCES
     ${TWEETERIA_SOURCE_DIR}/entities.cpp
+    ${TWEETERIA_SOURCE_DIR}/error.cpp
     ${TWEETERIA_SOURCE_DIR}/image_util.cpp
     ${TWEETERIA_SOURCE_DIR}/string_util.cpp
     ${TWEETERIA_SOURCE_DIR}/tweet.cpp
@@ -45,6 +47,7 @@ target_include_directories(tweeteria PUBLIC
 target_link_libraries(tweeteria PUBLIC
     ${CASABLANCA_LIBRARIES}
 )
+target_compile_definitions(tweeteria PUBLIC RAPIDJSON_HAS_STDSTRING=1)
 
 option(TWEETERIA_BUILD_TESTS "If enabled, builds unit tests along with the library." ON)
 if(TWEETERIA_BUILD_TESTS)

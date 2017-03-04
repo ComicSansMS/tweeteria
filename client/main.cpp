@@ -23,6 +23,7 @@
 #include <web_resource_provider.hpp>
 
 #include <tweeteria/tweeteria.hpp>
+#include <tweeteria/image_util.hpp>
 #include <tweeteria/string_util.hpp>
 
 #include <gbBase/Finally.hpp>
@@ -32,6 +33,8 @@
 #include <cpprest/http_client.h>
 
 #include <QApplication>
+
+#include <fstream>
 
 int main(int argc, char* argv[])
 {
@@ -53,6 +56,15 @@ int main(int argc, char* argv[])
     Ghulbus::Log::setLogHandler(top_handler);
 
     GHULBUS_LOG(Info, "Tweeteria client up and running.");
+
+    tweeteria::OAuthCredentials credentials;
+    {
+        std::ifstream fin("tweeteria.cred", std::ios_base::binary);
+        credentials = tweeteria::OAuthCredentials::deserialize(fin);
+    }
+    tweeteria::Tweeteria tweeteria(credentials);
+    auto ft_cred = tweeteria.verifyCredentials();
+    auto cred = ft_cred.get();
 
     WebResourceProvider wrp;
     ImageProvider image_provider(wrp);
@@ -87,26 +99,12 @@ int main(int argc, char* argv[])
     auto tweet = new TweetWidget(tweets[0], parent);
     parent_layout->addWidget(tweet);
 
+    main_window.setWindowTitle("Tweeteria");
     main_window.setCentralWidget(parent);
     main_window.setStyleSheet("QMainWindow { background-color: white }");
     main_window.show();
 
-    auto extract_img_url = [](std::string const& profile_image_url)
-    {
-        auto uri_str = utility::string_t(QString::fromUtf8(profile_image_url.c_str()).toStdWString());
-        auto it_find = uri_str.find(utility::string_t(U("_normal")));
-        uri_str.replace(it_find, 7, utility::string_t(U("")));
-        web::http::uri img_url(uri_str);
-        auto const host = img_url.host();
-        auto const path = img_url.path();
-        auto const grar = img_url.fragment();
-        auto const auth = img_url.authority();
-        auto const scheme = img_url.scheme();
-        auto const reso = img_url.resource();
-        return img_url;
-    };
-
-    auto const img_url = extract_img_url(users[18].profile_image_url_https);
+    auto const img_url = web::http::uri(tweeteria::convertUtf8ToUtf16(tweeteria::getProfileImageUrlsFromBaseUrl(users[18].profile_image_url_https).original));
     web::http::client::http_client cli(img_url.authority());
     cli.request(web::http::methods::GET, img_url.resource().to_string()).then([](web::http::http_response resp)
     {
@@ -119,10 +117,10 @@ int main(int argc, char* argv[])
     });
     for(int i=0; i<18; ++i) {
         auto user_widget_i = user_widgets[i];
-        auto const img_url = extract_img_url(users[i].profile_image_url_https);
+        auto const img_url = web::http::uri(tweeteria::convertUtf8ToUtf16(tweeteria::getProfileImageUrlsFromBaseUrl(users[i].profile_image_url_https).original));
 
         image_provider.retrieve(tweeteria::convertUtf16ToUtf8(img_url.to_string()), [user_widget_i](QPixmap pic) {
-            user_widget_i->imageArrived(pic.scaled(200, 200));
+            user_widget_i->imageArrived(pic.scaledToHeight(200, Qt::SmoothTransformation));
         });
     }
 
