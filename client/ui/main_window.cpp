@@ -17,6 +17,17 @@
  */
 #include <ui/main_window.hpp>
 
-MainWindow::MainWindow()
-    :QMainWindow()
-{}
+#include <ui/central_widget.hpp>
+
+MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria)
+    :QMainWindow(), m_centralWidget(new CentralWidget(tweeteria, this))
+{
+    setWindowTitle("Tweeteria");
+    setCentralWidget(m_centralWidget);
+    setStyleSheet("QMainWindow { background-color: white }");
+}
+
+CentralWidget* MainWindow::getCentralWidget()
+{
+    return m_centralWidget;
+}

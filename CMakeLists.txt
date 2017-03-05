@@ -40,11 +40,13 @@ set(CLIENT_HEADER_FILES
 set(CLIENT_UI_DIR ${CLIENT_SOURCE_DIR}/ui)
 set(CLIENT_QT_SOURCE_FILES
     ${CLIENT_UI_DIR}/main_window.cpp
+    ${CLIENT_UI_DIR}/central_widget.cpp
     ${CLIENT_UI_DIR}/tweet_widget.cpp
     ${CLIENT_UI_DIR}/user_widget.cpp
 )
 set(CLIENT_QT_MOC_HEADER_FILES
     ${CLIENT_UI_DIR}/main_window.hpp
+    ${CLIENT_UI_DIR}/central_widget.hpp
     ${CLIENT_UI_DIR}/tweet_widget.hpp
     ${CLIENT_UI_DIR}/user_widget.hpp
 )

@@ -63,7 +63,7 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     m_layout->addStretch();
     m_date->setFont(QFont("Arial", 8));
     m_date->setStyleSheet("QLabel { color: grey; }");
-    m_date->setText("3:27 AM - 3 May 2016");
+    m_date->setText(QString::fromStdString(t.created_at));
     m_layout->addWidget(m_date);
 
     setMinimumWidth(590);

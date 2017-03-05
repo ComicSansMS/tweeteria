@@ -19,14 +19,25 @@
 #define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
 
 #include <QMainWindow>
-#include <QScrollBar>
+
+#include <QBoxLayout>
 #include <QListWidget>
+
+class CentralWidget;
+
+namespace tweeteria {
+class Tweeteria;
+}
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+private:
+    CentralWidget* m_centralWidget;
 public:
-    MainWindow();
+    MainWindow(tweeteria::Tweeteria& tweeteria);
+
+    CentralWidget* getCentralWidget();
 };
 
 #endif
