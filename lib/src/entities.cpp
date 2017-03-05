@@ -76,7 +76,7 @@ Media Media::fromJSON(rapidjson::Value const& val)
     ret.media_url_https = val["media_url_https"].GetString();
     ret.sizes = Sizes::fromJSON(val["sizes"]);
     auto it_source_status_id = val.FindMember("source_status_id");
-    ret.source_status_id = TweetId((it_source_status_id != val.MemberEnd()) ? val["source_status_id"].GetUint64() : 0);
+    ret.source_status_id = TweetId((it_source_status_id != val.MemberEnd()) ? it_source_status_id->value.GetUint64() : 0);
     ret.type = val["type"].GetString();
     ret.url = val["url"].GetString();
     return ret;
