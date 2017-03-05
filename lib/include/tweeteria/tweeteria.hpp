@@ -110,9 +110,6 @@ public:
 
     pplx::task<std::vector<User>> getUsers(std::vector<UserId> const& user_ids);
 };
-
-std::vector<User> json_test();
-std::vector<Tweet> json_test_tweets();
 }
 
 

@@ -51,6 +51,7 @@ target_link_libraries(tweeteria PUBLIC
     ${CASABLANCA_LIBRARIES}
 )
 target_compile_definitions(tweeteria PUBLIC RAPIDJSON_HAS_STDSTRING=1)
+target_compile_options(tweeteria PRIVATE $<$<STREQUAL:$<CXX_COMPILER_ID>,MSVC>:/W4>)
 
 option(TWEETERIA_BUILD_TESTS "If enabled, builds unit tests along with the library." ON)
 if(TWEETERIA_BUILD_TESTS)
