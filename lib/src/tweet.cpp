@@ -32,14 +32,10 @@ Tweet Tweet::fromJSON(rapidjson::Value const& val)
     ret.in_reply_to_status_id = TweetId(getNullable<std::uint64_t>(val["in_reply_to_status_id"]));
     ret.in_reply_to_user_id = UserId(getNullable<std::uint64_t>(val["in_reply_to_user_id"]));
 
-    auto it_quoted_status_id = val.FindMember("quoted_status_id");
-    if(it_quoted_status_id != val.MemberEnd()) {
-        ret.quoted_status_id = TweetId(it_quoted_status_id->value.GetUint64());
-        ret.quoted_status = std::make_shared<Tweet>(Tweet::fromJSON(val["quoted_status"]));
-    } else {
-        ret.quoted_status_id = TweetId(0);
-        ret.quoted_status = nullptr;
-    }
+    auto const it_quoted_status_id = val.FindMember("quoted_status_id");
+    ret.quoted_status_id = TweetId((it_quoted_status_id != val.MemberEnd()) ? (it_quoted_status_id->value.GetUint64()) : 0);
+    auto const it_quoted_status = val.FindMember("quoted_status");
+    ret.quoted_status = ((it_quoted_status != val.MemberEnd()) ? std::make_shared<Tweet>(Tweet::fromJSON(val["quoted_status"])) : nullptr);
 
     ret.retweet_count = val["retweet_count"].GetInt();
     ret.retweeted = val["retweeted"].GetBool();
