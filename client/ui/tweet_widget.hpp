@@ -19,6 +19,7 @@
 #define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_TWEET_WIDGET_HPP
 
 #include <tweeteria/tweet.hpp>
+#include <tweeteria/user.hpp>
 
 #include <QBoxLayout>
 #include <QLabel>
@@ -39,7 +40,10 @@ private:
     QLabel* m_text;
     QLabel* m_date;
 public:
-    TweetWidget(tweeteria::Tweet const& t, QWidget* parent);
+    TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent);
+
+public slots:
+    void imageArrived(QPixmap p);
 };
 
 #endif

@@ -36,6 +36,8 @@ struct Tweet {
     UserId user_id;
 
     static Tweet fromJSON(rapidjson::Value const& val);
+
+    std::string getDisplayText() const;
 };
 }
 

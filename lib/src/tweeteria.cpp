@@ -328,6 +328,7 @@ pplx::task<std::vector<Tweet>> Tweeteria::getUserTimeline(UserId user_id)
         request_uri.append_query(U("user_id"), user_id.id);
     }
     request_uri.append_query(U("trim_user"), U("1"));
+    request_uri.append_query(U("exclude_replies"), U("1"));
     web::http::http_request request(web::http::methods::GET);
     request.set_request_uri(request_uri.to_uri());
 
