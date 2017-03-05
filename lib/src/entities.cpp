@@ -24,7 +24,7 @@ Hashtag Hashtag::fromJSON(rapidjson::Value const& val)
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Hashtag."); }
     Hashtag ret;
     ret.indices = Indices::fromJSON(val["indices"]);
-    ret.text = val["text"].GetString();
+    ret.text = val["text"].Get<std::string>();
     return ret;
 }
 
@@ -32,7 +32,7 @@ Symbol Symbol::fromJSON(rapidjson::Value const& val)
 {
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Symbol."); }
     Symbol ret;
-    ret.text = val["text"].GetString();
+    ret.text = val["text"].Get<std::string>();
     ret.indices = Indices::fromJSON(val["indices"]);
     return ret;
 }
@@ -42,7 +42,7 @@ Size Size::fromJSON(rapidjson::Value const& val)
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Size."); }
     Size ret;
     ret.h = val["h"].GetInt();
-    std::string const resize_str = val["resize"].GetString();
+    std::string const resize_str = val["resize"].Get<std::string>();
     if(resize_str == "fit") {
         ret.resize = Size::fit;
     } else if(resize_str == "crop") {
@@ -69,16 +69,16 @@ Media Media::fromJSON(rapidjson::Value const& val)
 {
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Media."); }
     Media ret;
-    ret.display_url = val["display_url"].GetString();
-    ret.expanded_url = val["expanded_url"].GetString();
+    ret.display_url = val["display_url"].Get<std::string>();
+    ret.expanded_url = val["expanded_url"].Get<std::string>();
     ret.id = MediaId(val["id"].GetUint64());
     ret.indices = Indices::fromJSON(val["indices"]);
-    ret.media_url_https = val["media_url_https"].GetString();
+    ret.media_url_https = val["media_url_https"].Get<std::string>();
     ret.sizes = Sizes::fromJSON(val["sizes"]);
     auto it_source_status_id = val.FindMember("source_status_id");
     ret.source_status_id = TweetId((it_source_status_id != val.MemberEnd()) ? it_source_status_id->value.GetUint64() : 0);
-    ret.type = val["type"].GetString();
-    ret.url = val["url"].GetString();
+    ret.type = val["type"].Get<std::string>();
+    ret.url = val["url"].Get<std::string>();
     return ret;
 }
 
@@ -86,10 +86,10 @@ Url Url::fromJSON(rapidjson::Value const& val)
 {
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Url."); }
     Url ret;
-    ret.display_url = val["display_url"].GetString();
-    ret.expanded_url = val["expanded_url"].GetString();
+    ret.display_url = val["display_url"].Get<std::string>();
+    ret.expanded_url = val["expanded_url"].Get<std::string>();
     ret.indices = Indices::fromJSON(val["indices"]);
-    ret.url = val["url"].GetString();
+    ret.url = val["url"].Get<std::string>();
     return ret;
 }
 
@@ -99,8 +99,8 @@ UserMention UserMention::fromJSON(rapidjson::Value const& val)
     UserMention ret;
     ret.id = UserId(val["id"].GetUint64());
     ret.indices = Indices::fromJSON(val["indices"]);
-    ret.name = val["name"].GetString();
-    ret.screen_name = val["screen_name"].GetString();
+    ret.name = val["name"].Get<std::string>();
+    ret.screen_name = val["screen_name"].Get<std::string>();
     return ret;
 }
 

@@ -15,7 +15,7 @@ Error Error::fromJSON(rapidjson::Value const& val)
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Error."); }
     Error ret;
     ret.code = val["code"].GetUint();
-    ret.message = val["message"].GetString();
+    ret.message = val["message"].Get<std::string>();
     return ret;
 }
 

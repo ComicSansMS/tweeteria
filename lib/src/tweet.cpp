@@ -20,7 +20,7 @@ Tweet Tweet::fromJSON(rapidjson::Value const& val)
 {
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Tweet."); }
     Tweet ret;
-    ret.created_at = val["created_at"].GetString();
+    ret.created_at = val["created_at"].Get<std::string>();
     ret.entities = Entities::fromJSON(val["entities"]);
     ret.favorite_count = getNullable<std::int32_t>(val["favorite_count"]);
     ret.favorited = getNullable<bool>(val["favorited"]);
@@ -49,7 +49,7 @@ Tweet Tweet::fromJSON(rapidjson::Value const& val)
         ret.retweeted_status = nullptr;
     }
 
-    ret.text = val["text"].GetString();
+    ret.text = val["text"].Get<std::string>();
     ret.user_id = UserId(val["user"]["id"].GetUint64());
     return ret;
 }
