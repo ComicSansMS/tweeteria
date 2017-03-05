@@ -74,8 +74,10 @@ int main(int argc, char* argv[])
         friend_ids.insert(end(friend_ids), begin(new_friends), end(new_friends));
     }
 
+    auto users1 = tweeteria.getUsers(friend_ids).get();
+
     std::vector<tweeteria::User> users;
-    auto friends_pending = tweeteria.getMyFriends();
+    auto friends_pending = tweeteria.getMyFriendsList();
     while(!friends_pending.done())
     {
         auto const new_friends = friends_pending.nextPage().get();

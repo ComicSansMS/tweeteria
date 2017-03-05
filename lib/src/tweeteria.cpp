@@ -139,7 +139,7 @@ struct Tweeteria::Pimpl
     pplx::task<std::tuple<Cursor, std::vector<UserId>>> getFriendsIds(
         bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id);
 
-    pplx::task<std::tuple<Cursor, std::vector<User>>> getFriends(
+    pplx::task<std::tuple<Cursor, std::vector<User>>> getFriendsList(
         bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id);
 };
 
@@ -244,14 +244,14 @@ pplx::task<std::tuple<Cursor, std::vector<UserId>>> Tweeteria::Pimpl::getFriends
     });
 }
 
-MultiPageResult<std::vector<User>> Tweeteria::getMyFriends()
+MultiPageResult<std::vector<User>> Tweeteria::getMyFriendsList()
 {
     return MultiPageResult<std::vector<User>>([this](CursorId cursor_id) {
-        return m_pimpl->getFriends(true, UserId(0), std::string(), cursor_id);
+        return m_pimpl->getFriendsList(true, UserId(0), std::string(), cursor_id);
     });
 }
 
-pplx::task<std::tuple<Cursor, std::vector<User>>> Tweeteria::Pimpl::getFriends(
+pplx::task<std::tuple<Cursor, std::vector<User>>> Tweeteria::Pimpl::getFriendsList(
     bool use_id, UserId user_id, std::string const& user_name, CursorId cursor_id)
 {
     web::http::uri_builder request_uri(U("/friends/list.json"));
@@ -298,13 +298,13 @@ pplx::task<std::vector<User>> Tweeteria::getUsers(std::vector<UserId> const& use
         if(is_first) {
             is_first = false;
         } else {
-            csv_list_acc.append(",");
+            csv_list_acc.append("%2C");
         }
         csv_list_acc.append(std::to_string(id.id));
     }
     auto const csv_list = toUtilString(csv_list_acc);
     web::http::uri_builder request_uri(U("/users/lookup.json"));
-    request_uri.append_query(U("user_id"), csv_list);
+    request_uri.append_query(U("user_id"), csv_list, false);
     web::http::http_request request(web::http::methods::GET);
     request.set_request_uri(request_uri.to_uri());
     return m_pimpl->http_client.request(request).then([](web::http::http_response response)

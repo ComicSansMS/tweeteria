@@ -104,7 +104,7 @@ public:
     pplx::task<std::tuple<Cursor, std::vector<UserId>>> getFriendsIds(std::string const& user_name, CursorId cursor_id);
     pplx::task<std::tuple<Cursor, std::vector<UserId>>> getFriendsIds(UserId user_id, CursorId cursor_id);
 
-    MultiPageResult<std::vector<User>> getMyFriends();
+    MultiPageResult<std::vector<User>> getMyFriendsList();
 
     pplx::task<std::vector<User>> getUsers(std::vector<UserId> const& user_ids);
 };
