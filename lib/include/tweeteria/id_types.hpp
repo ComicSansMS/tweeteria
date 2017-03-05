@@ -63,9 +63,11 @@ namespace id_tags
 struct UserId_Tag {};
 struct TweetId_Tag {};
 struct CursorId_Tag {};
+struct MediaId_Tag {};
 }
 typedef WrappedId<std::uint64_t, id_tags::UserId_Tag> UserId;
 typedef WrappedId<std::uint64_t, id_tags::TweetId_Tag> TweetId;
 typedef WrappedId<std::int64_t, id_tags::CursorId_Tag> CursorId;
+typedef WrappedId<std::uint64_t, id_tags::MediaId_Tag> MediaId;
 }
 #endif

@@ -15,14 +15,14 @@ struct Error
     std::uint32_t code;
     std::string message;
 
-    static Error fromJSon(rapidjson::Value const& val);
+    static Error fromJSON(rapidjson::Value const& val);
 };
 
 struct Errors
 {
     std::vector<Error> errors;
 
-    static Errors fromJSon(rapidjson::Value const& val);
+    static Errors fromJSON(rapidjson::Value const& val);
 };
 }
 

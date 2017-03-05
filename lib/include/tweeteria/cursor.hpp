@@ -13,7 +13,7 @@ struct Cursor
     CursorId next_cursor;
     CursorId previous_cursor;
 
-    static Cursor fromJSon(rapidjson::Value const& val);
+    static Cursor fromJSON(rapidjson::Value const& val);
 };
 }
 

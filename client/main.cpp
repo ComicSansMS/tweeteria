@@ -74,20 +74,20 @@ int main(int argc, char* argv[])
         friend_ids.insert(end(friend_ids), begin(new_friends), end(new_friends));
     }
 
-    auto users1 = tweeteria.getUsers(friend_ids).get();
-
     std::vector<tweeteria::User> users;
-    auto friends_pending = tweeteria.getMyFriendsList();
-    while(!friends_pending.done())
+    for(std::size_t i=0; i<friend_ids.size();)
     {
-        auto const new_friends = friends_pending.nextPage().get();
+        std::size_t const i_end = std::min(i + 100, friend_ids.size());
+        std::vector<tweeteria::UserId> query_ids(begin(friend_ids) + i, begin(friend_ids) + i_end);
+        i = i_end;
+        auto const new_friends = tweeteria.getUsers(query_ids).get();
         users.insert(end(users), begin(new_friends), end(new_friends));
     }
 
+    std::vector<tweeteria::Tweet> tweets = tweeteria.getUserTimeline(users[0].id).get();
+
     WebResourceProvider wrp;
     ImageProvider image_provider(wrp);
-
-    auto tweets = tweeteria::json_test_tweets();
 
     MainWindow main_window;
 
@@ -109,8 +109,21 @@ int main(int argc, char* argv[])
         list->setItemWidget(list_items.back(), user_widgets.back());
     }
 
-    auto tweet = new TweetWidget(tweets[0], parent);
-    parent_layout->addWidget(tweet);
+    //auto tweet = new TweetWidget(tweets[0], parent);
+    auto tweet_list = new QListWidget(parent);
+    parent_layout->addWidget(tweet_list);
+    tweet_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    tweet_list->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+
+    std::vector<TweetWidget*> tweet_widgets;
+    std::vector<QListWidgetItem*> tweet_list_items;
+    for(std::size_t i=0; i<tweets.size(); ++i)
+    {
+        tweet_widgets.emplace_back(new TweetWidget(tweets[i], parent));
+        tweet_list_items.emplace_back(new QListWidgetItem(tweet_list));
+        tweet_list_items.back()->setSizeHint(tweet_widgets.back()->minimumSizeHint());
+        tweet_list->setItemWidget(tweet_list_items.back(), tweet_widgets.back());
+    }
 
     main_window.setWindowTitle("Tweeteria");
     main_window.setCentralWidget(parent);

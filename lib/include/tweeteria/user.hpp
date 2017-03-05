@@ -3,6 +3,7 @@
 #define TWEETERIA_INCLUDE_GUARD_USER_HPP
 
 #include <tweeteria/id_types.hpp>
+#include <tweeteria/entities.hpp>
 
 #include <rapidjson/fwd.h>
 
@@ -16,12 +17,13 @@ struct User {
     std::string name;
     std::string screen_name;
     std::string description;
+    UserEntities entities;
     std::uint32_t followers_count;
     std::uint32_t friends_count;
     std::uint32_t favourites_count;
     std::string profile_image_url_https;
 
-    static User fromJSon(rapidjson::Value const& val);
+    static User fromJSON(rapidjson::Value const& val);
 };
 }
 

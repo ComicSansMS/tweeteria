@@ -170,7 +170,7 @@ pplx::task<VerificationResult> Tweeteria::verifyCredentials()
             {
                 rapidjson::Document d;
                 d.Parse(body);
-                return VerificationResult{ false, Errors::fromJSon(d) };
+                return VerificationResult{ false, Errors::fromJSON(d) };
             });
         } else {
             throw APIProtocolViolation("Unexpected http return code for account/verify_credentials.");
@@ -239,7 +239,7 @@ pplx::task<std::tuple<Cursor, std::vector<UserId>>> Tweeteria::Pimpl::getFriends
         ret.reserve(ids.Size());
         std::transform(ids.Begin(), ids.End(), std::back_inserter(ret),
                        [](rapidjson::Value const& v) { return UserId(v.GetUint64()); });
-        auto const cursor = Cursor::fromJSon(d);
+        auto const cursor = Cursor::fromJSON(d);
         return std::make_tuple(cursor, ret);
     });
 }
@@ -279,13 +279,11 @@ pplx::task<std::tuple<Cursor, std::vector<User>>> Tweeteria::Pimpl::getFriendsLi
         std::vector<User> ret;
         auto const& users = d["users"];
         ret.reserve(users.Size());
-        std::transform(users.Begin(), users.End(), std::back_inserter(ret), User::fromJSon);
-        auto const cursor = Cursor::fromJSon(d);
+        std::transform(users.Begin(), users.End(), std::back_inserter(ret), User::fromJSON);
+        auto const cursor = Cursor::fromJSON(d);
         return std::make_tuple(cursor, ret);
     });
 }
-
-
 
 pplx::task<std::vector<User>> Tweeteria::getUsers(std::vector<UserId> const& user_ids)
 {
@@ -318,7 +316,32 @@ pplx::task<std::vector<User>> Tweeteria::getUsers(std::vector<UserId> const& use
         d.Parse(body);
         std::vector<User> ret;
         ret.reserve(d.Size());
-        std::transform(d.Begin(), d.End(), std::back_inserter(ret), User::fromJSon);
+        std::transform(d.Begin(), d.End(), std::back_inserter(ret), User::fromJSON);
+        return ret;
+    });
+}
+
+pplx::task<std::vector<Tweet>> Tweeteria::getUserTimeline(UserId user_id)
+{
+    web::http::uri_builder request_uri(U("/statuses/user_timeline.json"));
+    if(user_id.id != 0) {
+        request_uri.append_query(U("user_id"), user_id.id);
+    }
+    request_uri.append_query(U("trim_user"), U("1"));
+    web::http::http_request request(web::http::methods::GET);
+    request.set_request_uri(request_uri.to_uri());
+
+    return m_pimpl->http_client.request(request).then([](web::http::http_response response) {
+        if(response.status_code() != web::http::status_codes::OK) {
+            throw APIProtocolViolation("Unexpected http return code for friends/list.");
+        }
+        return response.extract_utf8string();
+    }).then([](std::string body) {
+        rapidjson::Document d;
+        d.Parse(body);
+        std::vector<Tweet> ret;
+        ret.reserve(d.Size());
+        std::transform(d.Begin(), d.End(), std::back_inserter(ret), Tweet::fromJSON);
         return ret;
     });
 }
@@ -344,7 +367,7 @@ std::vector<User> json_test()
         if(it->name == "users") {
             auto& user_arr = it->value.GetArray();
             for(rapidjson::SizeType i=0; i<user_arr.Size(); ++i) {
-                users.push_back(User::fromJSon(user_arr[i]));
+                users.push_back(User::fromJSON(user_arr[i]));
             }
         }
     }
@@ -364,7 +387,7 @@ std::vector<Tweet> json_test_tweets()
     d.Parse(str.data(), str.length());
     std::vector<Tweet> tweets;
     for(rapidjson::SizeType i=0; i<d.Size(); ++i) {
-        tweets.push_back(Tweet::fromJSon(d[i]));
+        tweets.push_back(Tweet::fromJSON(d[i]));
     }
     return tweets;
 }

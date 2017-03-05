@@ -7,7 +7,7 @@
 
 namespace tweeteria
 {
-Cursor Cursor::fromJSon(rapidjson::Value const& val)
+Cursor Cursor::fromJSON(rapidjson::Value const& val)
 {
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Cursor."); }
     Cursor ret;
