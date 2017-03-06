@@ -106,7 +106,7 @@ public:
 
     MultiPageResult<std::vector<User>> getMyFriendsList();
 
-    pplx::task<std::vector<Tweet>> getUserTimeline(UserId user_id);
+    pplx::task<std::vector<Tweet>> getUserTimeline(UserId user_id, TweetId max_id = TweetId(0));
 
     pplx::task<std::vector<User>> getUsers(std::vector<UserId> const& user_ids);
 };

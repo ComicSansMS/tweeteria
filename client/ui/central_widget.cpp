@@ -30,20 +30,32 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, QWidget* parent)
     :QWidget(parent), m_tweeteria(&tweeteria),
      m_webResourceProvider(new WebResourceProvider()), m_imageProvider(new ImageProvider(*m_webResourceProvider)),
      m_centralLayout(new QBoxLayout(QBoxLayout::Direction::LeftToRight, this)),
-     m_usersList(new QListWidget(this)), m_tweetsList(new QListWidget(this))
+     m_usersList(new QListWidget(this)), m_rightPaneLayout(new QBoxLayout(QBoxLayout::Direction::TopToBottom, this)),
+     m_tweetsList(new QListWidget(this)), m_buttonsLayout(new QBoxLayout(QBoxLayout::Direction::LeftToRight, this)),
+     m_nextPage(new QPushButton(this)), m_previousPage(new QPushButton(this)), m_selectedUser(nullptr)
 {
     m_usersList->setMinimumWidth(600);
     m_centralLayout->addWidget(m_usersList);
     m_usersList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_usersList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
+    m_centralLayout->addLayout(m_rightPaneLayout);
     m_tweetsList->setMinimumWidth(600);
-    m_centralLayout->addWidget(m_tweetsList);
+    m_rightPaneLayout->addWidget(m_tweetsList);
     m_tweetsList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_tweetsList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
+    m_rightPaneLayout->addLayout(m_buttonsLayout);
+    m_previousPage->setText("<<");
+    m_buttonsLayout->addWidget(m_previousPage);
+    m_nextPage->setText(">>");
+    m_buttonsLayout->addWidget(m_nextPage);
+    
+
     connect(m_usersList, &QListWidget::clicked, this, &CentralWidget::userSelected);
     connect(this, &CentralWidget::tweetsChanged, this, &CentralWidget::populateTweets, Qt::ConnectionType::QueuedConnection);
+
+    connect(m_nextPage, &QPushButton::clicked, this, &CentralWidget::nextPage);
 }
 
 CentralWidget::~CentralWidget()
@@ -54,6 +66,7 @@ CentralWidget::~CentralWidget()
 void CentralWidget::userSelected(QModelIndex const& user_item)
 {
     auto const& user = m_users[user_item.row()];
+    m_selectedUser = &user;
     m_tweeteria->getUserTimeline(user.id).then([this](std::vector<tweeteria::Tweet> tweets) {
         {
             std::lock_guard<std::mutex> lk(m_mtx);
@@ -61,6 +74,26 @@ void CentralWidget::userSelected(QModelIndex const& user_item)
         }
         emit tweetsChanged();
     });
+}
+
+void CentralWidget::nextPage()
+{
+    tweeteria::TweetId current_max_id(0);
+    {
+        std::lock_guard<std::mutex> lk(m_mtx);
+        if(!m_tweets.empty()) {
+            current_max_id = m_tweets.back().id;
+        }
+    }
+    if(m_selectedUser) {
+        m_tweeteria->getUserTimeline(m_selectedUser->id, current_max_id).then([this](std::vector<tweeteria::Tweet> tweets) {
+            {
+                std::lock_guard<std::mutex> lk(m_mtx);
+                m_tweets.swap(tweets);
+            }
+            emit tweetsChanged();
+        });
+    }
 }
 
 void CentralWidget::populateUsers(std::vector<tweeteria::User> const& users)

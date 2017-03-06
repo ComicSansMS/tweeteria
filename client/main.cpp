@@ -68,7 +68,6 @@ int main(int argc, char* argv[])
     auto ft_cred = tweeteria.verifyCredentials();
     auto cred = ft_cred.get();
 
-    //*
     auto my_friends_ids = tweeteria.getMyFriendsIds();
     std::vector<tweeteria::UserId> friend_ids;
     while(!my_friends_ids.done())
@@ -86,12 +85,6 @@ int main(int argc, char* argv[])
         auto const new_friends = tweeteria.getUsers(query_ids).get();
         users.insert(end(users), begin(new_friends), end(new_friends));
     }
-    //*/
-
-    //std::vector<tweeteria::Tweet> tweets = tweeteria.getUserTimeline(users[59].id).get();
-
-    WebResourceProvider wrp;
-    ImageProvider image_provider(wrp);
 
     MainWindow main_window(tweeteria);
     main_window.getCentralWidget()->populateUsers(users);

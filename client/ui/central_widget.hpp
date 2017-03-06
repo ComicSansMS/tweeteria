@@ -22,6 +22,7 @@
 
 #include <QBoxLayout>
 #include <QListWidget>
+#include <QPushButton>
 
 #include <tweeteria/user.hpp>
 #include <tweeteria/tweet.hpp>
@@ -49,13 +50,21 @@ private:
     QBoxLayout* m_centralLayout;
 
     QListWidget* m_usersList;
+
+    QBoxLayout* m_rightPaneLayout;
     QListWidget* m_tweetsList;
+
+    QBoxLayout* m_buttonsLayout;
+    QPushButton* m_nextPage;
+    QPushButton* m_previousPage;
 
     std::vector<tweeteria::User> m_users;
     std::vector<tweeteria::Tweet> m_tweets;
     std::mutex m_mtx;
 
     std::unordered_map<tweeteria::UserId, tweeteria::User> m_userDb;
+
+    tweeteria::User const* m_selectedUser;
 public:
     CentralWidget(tweeteria::Tweeteria& tweeteria, QWidget* parent);
     ~CentralWidget();
@@ -67,6 +76,7 @@ public slots:
     void userSelected(QModelIndex const& user_item);
     void populateUsers(std::vector<tweeteria::User> const& users);
     void populateTweets();
+    void nextPage();
 };
 
 #endif

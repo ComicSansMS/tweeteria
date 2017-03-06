@@ -80,7 +80,7 @@ std::string Tweet::getDisplayText() const
         replacements.emplace_back(
             ht.indices[0],
             ht.indices[1],
-            std::string("<font color=\"#1DA1F2\">#<a href=\"https://twitter.com/hashtag/") + ht.text + "?src=hash\"><span style=\"color:#1DA1F2;\">" + ht.text + "</span></a></font>'"
+            std::string("<font color=\"#1DA1F2\">#<a href=\"https://twitter.com/hashtag/") + ht.text + "?src=hash\"><span style=\"color:#1DA1F2;\">" + ht.text + "</span></a></font>"
         );
     }
     for(auto const& um : entities.user_mentions) {

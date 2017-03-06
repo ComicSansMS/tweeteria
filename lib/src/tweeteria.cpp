@@ -321,11 +321,14 @@ pplx::task<std::vector<User>> Tweeteria::getUsers(std::vector<UserId> const& use
     });
 }
 
-pplx::task<std::vector<Tweet>> Tweeteria::getUserTimeline(UserId user_id)
+pplx::task<std::vector<Tweet>> Tweeteria::getUserTimeline(UserId user_id, TweetId max_id)
 {
     web::http::uri_builder request_uri(U("/statuses/user_timeline.json"));
-    if(user_id.id != 0) {
+    if(user_id != UserId(0)) {
         request_uri.append_query(U("user_id"), user_id.id);
+    }
+    if(max_id != TweetId(0)) {
+        request_uri.append_query(U("max_id"), max_id.id);
     }
     request_uri.append_query(U("trim_user"), U("1"));
     request_uri.append_query(U("exclude_replies"), U("1"));
