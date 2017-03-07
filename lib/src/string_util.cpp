@@ -21,6 +21,7 @@ std::string convertUtf16ToUtf8(std::wstring const& utf16_str)
 namespace {
 class ZeroTermIterator
 {
+    friend bool operator==(ZeroTermIterator lhs, ZeroTermIterator rhs);
     friend bool operator!=(ZeroTermIterator lhs, ZeroTermIterator rhs);
 private:
     char const* it_;
@@ -39,6 +40,11 @@ public:
         return *it_;
     }
 };
+
+bool operator==(ZeroTermIterator lhs, ZeroTermIterator /*rhs*/)
+{
+    return (*lhs.it_) == '\0';
+}
 
 bool operator!=(ZeroTermIterator lhs, ZeroTermIterator /*rhs*/)
 {

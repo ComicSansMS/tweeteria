@@ -2,6 +2,7 @@
 #include <tweeteria/tweet.hpp>
 
 #include <tweeteria/exceptions.hpp>
+#include <tweeteria/string_util.hpp>
 
 #include <rapidjson/document.h>
 
@@ -98,12 +99,18 @@ std::string Tweet::getDisplayText() const
     std::size_t src_end = text.length();
     auto replacements_it = replacements.cbegin();
     auto const base_it = text.cbegin();
+    std::size_t utf8_correction = 0;
     while(src_i != src_end)
     {
         if(replacements_it != end(replacements)) {
-            ret += std::string(base_it + src_i, base_it + replacements_it->startIndex);
+            auto it = avanceUtf8CodePoints(base_it + src_i, text.cend(), (replacements_it->startIndex + utf8_correction) - src_i);
+            ret += std::string(base_it + src_i, it);
+            std::size_t const len_code_units = it - (base_it + src_i);
+            std::size_t const len_code_points = lengthUtf8CodePoints(base_it + src_i, it);
+            utf8_correction += len_code_units - len_code_points;
+
             ret += replacements_it->replacement;
-            src_i = replacements_it->endIndex;
+            src_i = replacements_it->endIndex + utf8_correction;
             ++replacements_it;
         } else {
             ret += std::string(base_it + src_i, base_it + src_end);
