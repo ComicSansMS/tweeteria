@@ -118,6 +118,11 @@ std::string Tweet::getDisplayText() const
         }
     }
 
+    std::size_t it_newline;
+    while((it_newline = ret.find('\n')) != std::string::npos) {
+        ret.replace(it_newline, 1, "<br />");
+    }
+
     return ret;
 }
 }
