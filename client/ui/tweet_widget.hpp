@@ -38,12 +38,17 @@ private:
     QLabel* m_name;
     QLabel* m_twitterName;
     QLabel* m_text;
+    QLabel* m_media;
     QLabel* m_date;
 public:
     TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent);
 
-public slots:
+signals:
     void imageArrived(QPixmap p);
+    void mediaArrived(QPixmap p);
+private slots:
+    void onImageArrived(QPixmap p);
+    void onMediaArrived(QPixmap p);
 };
 
 #endif

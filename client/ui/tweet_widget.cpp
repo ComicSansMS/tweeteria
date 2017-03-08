@@ -26,7 +26,7 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     :QWidget(parent), m_tweet(t),
      m_layout(new QBoxLayout(QBoxLayout::TopToBottom, this)), m_topRowLayout(new QBoxLayout(QBoxLayout::LeftToRight, parent)),
      m_avatar(new QLabel(this)), m_nameLayout(new QBoxLayout(QBoxLayout::TopToBottom, parent)), m_name(new QLabel(this)),
-     m_twitterName(new QLabel(this)), m_text(new QLabel(this)), m_date(new QLabel(this))
+     m_twitterName(new QLabel(this)), m_text(new QLabel(this)), m_media(new QLabel(this)), m_date(new QLabel(this))
 {
     GHULBUS_PRECONDITION_MESSAGE(t.user_id == author.id, "Author user must match tweet user.");
     m_layout->addLayout(m_topRowLayout);
@@ -60,16 +60,31 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     //m_text->setMinimumHeight(rect.height());
     m_layout->addWidget(m_text);
 
+    m_media->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+    m_media->hide();
+    m_layout->addWidget(m_media);
+
     m_layout->addStretch();
     m_date->setFont(QFont("Arial", 8));
     m_date->setStyleSheet("QLabel { color: grey; }");
     m_date->setText(QString::fromStdString(t.created_at));
     m_layout->addWidget(m_date);
 
+    connect(this, &TweetWidget::imageArrived, this, &TweetWidget::onImageArrived, Qt::ConnectionType::QueuedConnection);
+    connect(this, &TweetWidget::mediaArrived, this, &TweetWidget::onMediaArrived, Qt::ConnectionType::BlockingQueuedConnection);
+
     setMinimumWidth(590);
 }
 
-void TweetWidget::imageArrived(QPixmap p)
+void TweetWidget::onImageArrived(QPixmap p)
 {
     m_avatar->setPixmap(p);
+}
+
+void TweetWidget::onMediaArrived(QPixmap p)
+{
+    QPixmap scaled = p.scaledToWidth(500, Qt::TransformationMode::SmoothTransformation);
+    m_media->setPixmap(scaled);
+    m_media->setMinimumSize(scaled.size());
+    m_media->show();
 }

@@ -160,7 +160,21 @@ void CentralWidget::populateTweets()
         TweetWidget* tweet_widget = tweet_widgets.back();
         auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(author.profile_image_url_https).normal;
         m_imageProvider->retrieve(img_url, [tweet_widget](QPixmap pic) {
-            tweet_widget->imageArrived(pic);
+            emit tweet_widget->imageArrived(pic);
         });
+
+        if(!tweet.entities.media.empty()) {
+            if(tweet.entities.media.size() > 1) {
+                tweet.entities.media.size();    // todo
+            }
+            auto const& media = tweet.entities.media.back();
+            if(media.type == "photo") {
+                m_imageProvider->retrieve(media.media_url_https, [tweet_widget, this](QPixmap pic) {
+                    emit tweet_widget->mediaArrived(pic);
+                });
+            } else {
+                auto type = tweet.entities.media.back().type;    // todo
+            }
+        }
     }
 }
