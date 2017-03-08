@@ -86,8 +86,19 @@ Url Url::fromJSON(rapidjson::Value const& val)
 {
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Url."); }
     Url ret;
-    ret.display_url = val["display_url"].Get<std::string>();
-    ret.expanded_url = val["expanded_url"].Get<std::string>();
+    // the docs claim that display_url and expanded_url are always there,
+    // but apparently they are absent or null sometimes in practice.
+    // we fall back to the value of url in that case.
+    if(val.HasMember("display_url") && val["display_url"].IsString()) {
+        ret.display_url = val["display_url"].Get<std::string>();
+    } else {
+        ret.display_url = val["url"].Get<std::string>();
+    }
+    if(val.HasMember("expanded_url") && val["expanded_url"].IsString()) {
+        ret.expanded_url = val["expanded_url"].Get<std::string>();
+    } else {
+        ret.expanded_url = val["url"].Get<std::string>();
+    }
     ret.indices = Indices::fromJSON(val["indices"]);
     ret.url = val["url"].Get<std::string>();
     return ret;

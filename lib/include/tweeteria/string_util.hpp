@@ -18,24 +18,34 @@ template<class ForwardIt>
 inline ForwardIt avanceUtf8CodePoints(ForwardIt first, ForwardIt last, std::size_t n_code_points)
 {
     auto it = first;
+    auto advance_and_check = [last](ForwardIt& it) {
+        ++it;
+        if(it == last) {
+            throw InvalidArgument("UTF8 string truncated in the middle of a code point.");
+        }
+        if(((*it) & 0xC0) != 0x80) {
+            throw InvalidArgument("Malformed UTF8: Code point too short.");
+        }
+    };
     for(auto count = 0; count < n_code_points; ++count) {
+        if(it == last) { throw InvalidArgument("UTF8 advance out of range."); }
         if(((*it) & 0x80) == 0x00) {
             // single byte code point
             ++it;
         } else if(((*it) & 0xE0) == 0xC0) {
             // two byte code point
-            ++it;
+            advance_and_check(it);
             ++it;
         } else if(((*it) & 0xF0) == 0xE0) {
             // three byte code point
-            ++it;
-            ++it;
+            advance_and_check(it);
+            advance_and_check(it);
             ++it;
         } else if(((*it) & 0xF8) == 0xF0) {
             // four byte code point
-            ++it;
-            ++it;
-            ++it;
+            advance_and_check(it);
+            advance_and_check(it);
+            advance_and_check(it);
             ++it;
         } else if(((*it) & 0xC0) == 0x80) {
             // middle of a code point

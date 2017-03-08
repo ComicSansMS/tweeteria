@@ -84,11 +84,32 @@ std::string Tweet::getDisplayText() const
             std::string("<font color=\"#1DA1F2\">#<a href=\"https://twitter.com/hashtag/") + ht.text + "?src=hash\"><span style=\"color:#1DA1F2;\">" + ht.text + "</span></a></font>"
         );
     }
+    for(auto const& sym : entities.symbols) {
+        replacements.emplace_back(
+            sym.indices[0],
+            sym.indices[1],
+            sym.text
+        );
+    }
     for(auto const& um : entities.user_mentions) {
         replacements.emplace_back(
             um.indices[0],
             um.indices[1],
             std::string("<font color=\"#1DA1F2\">@<a href=\"https://twitter.com/") + um.screen_name + "\"><span style=\"color:#1DA1F2;\">" + um.screen_name + "</span></a></font>"
+        );
+    }
+    for(auto const& url : entities.urls) {
+        replacements.emplace_back(
+            url.indices[0],
+            url.indices[1],
+            std::string("<a href=\"") + url.expanded_url + "\"><span style=\"color:#1DA1F2;\">" + url.display_url + "</span></a>"
+        );
+    }
+    for(auto const& media : entities.media) {
+        replacements.emplace_back(
+            media.indices[0],
+            media.indices[1],
+            ""
         );
     }
 
