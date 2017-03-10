@@ -30,18 +30,22 @@ class TweetWidget : public QWidget
 {
     Q_OBJECT
 private:
+    QWidget* m_parentWidget;
     tweeteria::Tweet m_tweet;
-    QBoxLayout* m_layout;
-    QBoxLayout* m_topRowLayout;
+    QBoxLayout m_layout;
+    QBoxLayout m_topRowLayout;
     QLabel* m_avatar;
-    QBoxLayout* m_nameLayout;
+    QBoxLayout m_nameLayout;
     QLabel* m_name;
     QLabel* m_twitterName;
     QLabel* m_text;
     QLabel* m_media;
     QLabel* m_date;
 public:
-    TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent);
+    TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent=nullptr);
+
+protected:
+    void resizeEvent(QResizeEvent* event) override;
 
 signals:
     void imageArrived(QPixmap p);

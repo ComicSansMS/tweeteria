@@ -19,20 +19,21 @@
 
 UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     :QWidget(parent), m_user(u),
-     m_layout(new QBoxLayout(QBoxLayout::Direction::LeftToRight, this)),
+     m_layout(QBoxLayout::Direction::LeftToRight),
      m_profileImage(new QLabel(this)),
-     m_rightLayout(new QBoxLayout(QBoxLayout::Direction::TopToBottom, this)),
+     m_rightLayout(QBoxLayout::Direction::TopToBottom),
      m_userName(new QLabel(this)),
      m_twitterName(new QLabel(this)),
      m_description(new QLabel(this))
 {
-    m_layout->addWidget(m_profileImage);
-    m_layout->addLayout(m_rightLayout);
-    m_rightLayout->addWidget(m_userName);
-    m_rightLayout->addWidget(m_twitterName);
-    m_rightLayout->addStretch(1);
-    m_rightLayout->addWidget(m_description);
-    m_rightLayout->addStretch(1);
+    m_layout.addWidget(m_profileImage);
+    m_layout.addLayout(&m_rightLayout);
+    m_rightLayout.addWidget(m_userName);
+    m_rightLayout.addWidget(m_twitterName);
+    m_rightLayout.addStretch(1);
+    m_rightLayout.addWidget(m_description);
+    m_rightLayout.addStretch(1);
+    setLayout(&m_layout);
 
     m_profileImage->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     m_profileImage->setStyleSheet("QLabel { background-color: #FF8080 }");

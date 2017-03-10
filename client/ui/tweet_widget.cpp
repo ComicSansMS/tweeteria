@@ -17,63 +17,65 @@
  */
 #include <ui/tweet_widget.hpp>
 
+#include <ui/tweets_list.hpp>
+
 #include <gbBase/Assert.hpp>
 
-#include <QApplication>
-#include <QDesktopWidget>
-
 TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent)
-    :QWidget(parent), m_tweet(t),
-     m_layout(new QBoxLayout(QBoxLayout::TopToBottom, this)), m_topRowLayout(new QBoxLayout(QBoxLayout::LeftToRight, parent)),
-     m_avatar(new QLabel(this)), m_nameLayout(new QBoxLayout(QBoxLayout::TopToBottom, parent)), m_name(new QLabel(this)),
+    :QWidget(parent), m_parentWidget(parent), m_tweet(t),
+     m_layout(QBoxLayout::TopToBottom), m_topRowLayout(QBoxLayout::LeftToRight),
+     m_avatar(new QLabel(this)), m_nameLayout(QBoxLayout::TopToBottom), m_name(new QLabel(this)),
      m_twitterName(new QLabel(this)), m_text(new QLabel(this)), m_media(new QLabel(this)), m_date(new QLabel(this))
 {
     GHULBUS_PRECONDITION_MESSAGE(t.user_id == author.id, "Author user must match tweet user.");
-    m_layout->addLayout(m_topRowLayout);
+    m_layout.addLayout(&m_topRowLayout);
 
     m_avatar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     m_avatar->setStyleSheet("QLabel { background-color: #FF8080 }");
     m_avatar->setMinimumSize(48, 48);
-    m_topRowLayout->addWidget(m_avatar);
+    m_topRowLayout.addWidget(m_avatar);
 
-    m_topRowLayout->addLayout(m_nameLayout);
+    m_topRowLayout.addLayout(&m_nameLayout);
 
-    m_nameLayout->addStretch();
+    m_nameLayout.addStretch();
     m_name->setFont(QFont("Arial", 18, QFont::Bold));
     m_name->setText(QString::fromStdString(author.name));
-    m_nameLayout->addWidget(m_name);
+    m_nameLayout.addWidget(m_name);
 
     m_twitterName->setText(QString("@") + QString::fromStdString(author.screen_name));
     m_twitterName->setFont(QFont("Arial", 12));
     m_twitterName->setStyleSheet("QLabel { color: grey; }");
-    m_nameLayout->addWidget(m_twitterName);
-    m_nameLayout->addStretch();
+    m_nameLayout.addWidget(m_twitterName);
+    m_nameLayout.addStretch();
 
-    m_layout->addStretch();
+    m_layout.addStretch();
     m_text->setFont(QFont("Arial", 12));
     m_text->setText(QString::fromStdString(m_tweet.getDisplayText()));
     m_text->setWordWrap(true);
     m_text->setMinimumSize(512, m_text->height() * 3);
+    m_text->setOpenExternalLinks(true);
     //static const int TabSize = 4;
     //QFontMetrics metrics(m_text->font());
     //QRect rect = metrics.boundingRect(QApplication::desktop()->geometry(), m_text->alignment() | Qt::TextWordWrap | Qt::TextExpandTabs, m_text->text(), TabSize);
     //m_text->setMinimumHeight(rect.height());
-    m_layout->addWidget(m_text);
+    m_layout.addWidget(m_text);
 
     m_media->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     m_media->hide();
-    m_layout->addWidget(m_media);
+    m_layout.addWidget(m_media);
 
-    m_layout->addStretch();
+    m_layout.addStretch();
     m_date->setFont(QFont("Arial", 8));
     m_date->setStyleSheet("QLabel { color: grey; }");
     m_date->setText(QString::fromStdString(t.created_at));
-    m_layout->addWidget(m_date);
+    m_layout.addWidget(m_date);
 
     connect(this, &TweetWidget::imageArrived, this, &TweetWidget::onImageArrived, Qt::ConnectionType::QueuedConnection);
     connect(this, &TweetWidget::mediaArrived, this, &TweetWidget::onMediaArrived, Qt::ConnectionType::BlockingQueuedConnection);
 
     setMinimumWidth(590);
+
+    setLayout(&m_layout);
 }
 
 void TweetWidget::onImageArrived(QPixmap p)
@@ -87,4 +89,9 @@ void TweetWidget::onMediaArrived(QPixmap p)
     m_media->setPixmap(scaled);
     m_media->setMinimumSize(scaled.size());
     m_media->show();
+}
+
+void TweetWidget::resizeEvent(QResizeEvent*)
+{
+    m_parentWidget->adjustSize();
 }

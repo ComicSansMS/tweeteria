@@ -19,6 +19,7 @@
 
 #include <ui/user_widget.hpp>
 #include <ui/tweet_widget.hpp>
+#include <ui/tweets_list.hpp>
 
 #include <image_provider.hpp>
 #include <web_resource_provider.hpp>
@@ -29,28 +30,26 @@
 CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, QWidget* parent)
     :QWidget(parent), m_tweeteria(&tweeteria),
      m_webResourceProvider(new WebResourceProvider()), m_imageProvider(new ImageProvider(*m_webResourceProvider)),
-     m_centralLayout(new QBoxLayout(QBoxLayout::Direction::LeftToRight, this)),
-     m_usersList(new QListWidget(this)), m_rightPaneLayout(new QBoxLayout(QBoxLayout::Direction::TopToBottom, this)),
-     m_tweetsList(new QListWidget(this)), m_buttonsLayout(new QBoxLayout(QBoxLayout::Direction::LeftToRight, this)),
+     m_centralLayout(QBoxLayout::Direction::LeftToRight),
+     m_usersList(new QListWidget(this)), m_rightPaneLayout(QBoxLayout::Direction::TopToBottom),
+     m_tweetsList(new TweetsList(this)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
      m_nextPage(new QPushButton(this)), m_previousPage(new QPushButton(this)), m_selectedUser(nullptr)
 {
     m_usersList->setMinimumWidth(600);
-    m_centralLayout->addWidget(m_usersList);
+    m_centralLayout.addWidget(m_usersList);
     m_usersList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_usersList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-    m_centralLayout->addLayout(m_rightPaneLayout);
+    m_centralLayout.addLayout(&m_rightPaneLayout);
     m_tweetsList->setMinimumWidth(600);
-    m_rightPaneLayout->addWidget(m_tweetsList);
-    m_tweetsList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_tweetsList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    m_rightPaneLayout.addWidget(m_tweetsList);
 
-    m_rightPaneLayout->addLayout(m_buttonsLayout);
+    m_rightPaneLayout.addLayout(&m_buttonsLayout);
     m_previousPage->setText("<<");
-    m_buttonsLayout->addWidget(m_previousPage);
+    m_buttonsLayout.addWidget(m_previousPage);
     m_nextPage->setText(">>");
-    m_buttonsLayout->addWidget(m_nextPage);
-    
+    m_buttonsLayout.addWidget(m_nextPage);
+    setLayout(&m_centralLayout);
 
     connect(m_usersList, &QListWidget::clicked, this, &CentralWidget::userSelected);
     connect(this, &CentralWidget::tweetsChanged, this, &CentralWidget::populateTweets, Qt::ConnectionType::QueuedConnection);
@@ -122,7 +121,6 @@ void CentralWidget::populateUsers(std::vector<tweeteria::User> const& users)
 void CentralWidget::populateTweets()
 {
     std::lock_guard<std::mutex> lk(m_mtx);
-    m_tweetsList->clear();
 
     // populate user db
     std::vector<tweeteria::UserId> missing_authors;
@@ -145,6 +143,7 @@ void CentralWidget::populateTweets()
         m_userDb[u.id] = u;
     }
 
+    m_tweetsList->clearAllTweets();
     // populate widgets
     std::vector<TweetWidget*> tweet_widgets;
     std::vector<QListWidgetItem*> tweet_list_items;
@@ -152,12 +151,8 @@ void CentralWidget::populateTweets()
     {
         tweeteria::Tweet const& tweet = (m_tweets[i].retweeted_status) ? (*m_tweets[i].retweeted_status) : m_tweets[i];
         tweeteria::User const& author = m_userDb[tweet.user_id];
-        tweet_widgets.emplace_back(new TweetWidget(tweet, author, this));
-        tweet_list_items.emplace_back(new QListWidgetItem(m_tweetsList));
-        tweet_list_items.back()->setSizeHint(tweet_widgets.back()->minimumSizeHint());
-        m_tweetsList->setItemWidget(tweet_list_items.back(), tweet_widgets.back());
+        auto tweet_widget = m_tweetsList->addTweetWidget(tweet, author);
 
-        TweetWidget* tweet_widget = tweet_widgets.back();
         auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(author.profile_image_url_https).normal;
         m_imageProvider->retrieve(img_url, [tweet_widget](QPixmap pic) {
             emit tweet_widget->imageArrived(pic);

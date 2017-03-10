@@ -15,31 +15,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_USER_WIDGET_HPP
-#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_USER_WIDGET_HPP
+#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_TWEETS_LIST_HPP
+#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_TWEETS_LIST_HPP
 
-#include <tweeteria/user.hpp>
+#include <ui/tweet_widget.hpp>
 
 #include <QBoxLayout>
-#include <QLabel>
-#include <QPixmap>
+#include <QScrollArea>
 #include <QWidget>
 
-class UserWidget : public QWidget
+#include <vector>
+
+namespace tweeteria {
+struct Tweet;
+struct User;
+}
+
+class TweetsList : public QScrollArea
 {
     Q_OBJECT
 private:
-    tweeteria::User m_user;
+    QWidget* m_list;
     QBoxLayout m_layout;
-    QLabel* m_profileImage;
-    QBoxLayout m_rightLayout;
-    QLabel* m_userName;
-    QLabel* m_twitterName;
-    QLabel* m_description;
+    std::vector<TweetWidget*> m_elements;
 public:
-    UserWidget(tweeteria::User const& u, QWidget* parent);
-public slots:
-    void imageArrived(QPixmap const& image);
+    TweetsList(QWidget* parent);
+
+    void clearAllTweets();
+    TweetWidget* addTweetWidget(tweeteria::Tweet const& tweet, tweeteria::User const& author);
 };
 
 #endif

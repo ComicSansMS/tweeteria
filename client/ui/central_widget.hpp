@@ -38,6 +38,7 @@ class Tweeteria;
 
 class WebResourceProvider;
 class ImageProvider;
+class TweetsList;
 
 class CentralWidget : public QWidget
 {
@@ -47,14 +48,15 @@ private:
     std::unique_ptr<WebResourceProvider> m_webResourceProvider;
     std::unique_ptr<ImageProvider> m_imageProvider;
 
-    QBoxLayout* m_centralLayout;
+    QBoxLayout m_centralLayout;
 
     QListWidget* m_usersList;
 
-    QBoxLayout* m_rightPaneLayout;
-    QListWidget* m_tweetsList;
+    QBoxLayout m_rightPaneLayout;
+    //QListWidget* m_tweetsList;
+    TweetsList* m_tweetsList;
 
-    QBoxLayout* m_buttonsLayout;
+    QBoxLayout m_buttonsLayout;
     QPushButton* m_nextPage;
     QPushButton* m_previousPage;
 
