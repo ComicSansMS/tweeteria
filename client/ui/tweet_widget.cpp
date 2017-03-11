@@ -23,8 +23,7 @@
 
 TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent)
     :QWidget(parent), m_tweet(t),
-     m_layout(QBoxLayout::TopToBottom), m_topRowLayout(QBoxLayout::LeftToRight),
-     m_avatar(new QLabel(this)), m_nameLayout(QBoxLayout::TopToBottom), m_name(new QLabel(this)),
+     m_avatar(new QLabel(this)), m_name(new QLabel(this)),
      m_twitterName(new QLabel(this)), m_text(new QLabel(this)), m_media(new QLabel(this)), m_date(new QLabel(this))
 {
     GHULBUS_PRECONDITION_MESSAGE(t.user_id == author.id, "Author user must match tweet user.");
@@ -38,7 +37,6 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     }
 
     m_avatar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-    m_avatar->setStyleSheet("QLabel { background-color: #FF8080 }");
     m_avatar->setMinimumSize(48, 48);
     m_topRowLayout.addWidget(m_avatar);
 

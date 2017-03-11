@@ -36,8 +36,7 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     setLayout(&m_layout);
 
     m_profileImage->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
-    m_profileImage->setStyleSheet("QLabel { background-color: #FF8080 }");
-    m_profileImage->setMinimumSize(200, 200);
+    m_profileImage->setMinimumSize(73, 73);
 
     m_userName->setText(QString::fromUtf8(m_user.name.c_str()));
     m_userName->setFont(QFont("Arial", 18, QFont::Bold));
@@ -47,6 +46,7 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     m_description->setText(QString::fromUtf8(m_user.description.c_str()));
     m_description->setFont(QFont("Arial", 12));
     m_description->setWordWrap(true);
+    m_description->hide();
     //m_description->setOpenExternalLinks(true);
     //m_description->setText("Testtext <a href=\"http://www.google.de\">Link</a> More text.");
 }

@@ -31,10 +31,10 @@ class TweetWidget : public QWidget
     Q_OBJECT
 private:
     tweeteria::Tweet m_tweet;
-    QBoxLayout m_layout;
-    QBoxLayout m_topRowLayout;
+    QVBoxLayout m_layout;
+    QHBoxLayout m_topRowLayout;
     QLabel* m_avatar;
-    QBoxLayout m_nameLayout;
+    QVBoxLayout m_nameLayout;
     QLabel* m_name;
     QLabel* m_twitterName;
     QLabel* m_text;

@@ -111,10 +111,10 @@ void CentralWidget::populateUsers(std::vector<tweeteria::User> const& users)
 
     for(std::size_t i=0; i<users.size(); ++i) {
         auto user_widget_i = user_widgets[i];
-        auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(users[i].profile_image_url_https).original;
+        auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(users[i].profile_image_url_https).bigger;
 
         m_imageProvider->retrieve(img_url, [user_widget_i](QPixmap pic) {
-            user_widget_i->imageArrived(pic.scaledToHeight(200, Qt::SmoothTransformation));
+            user_widget_i->imageArrived(pic);
         });
     }
 }
