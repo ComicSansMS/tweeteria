@@ -308,7 +308,7 @@ pplx::task<std::vector<User>> Tweeteria::getUsers(std::vector<UserId> const& use
     return m_pimpl->http_client.request(request).then([](web::http::http_response response)
     {
         if(response.status_code() != web::http::status_codes::OK) {
-            throw APIProtocolViolation("Unexpected http return code for friends/ids.");
+            throw APIProtocolViolation("Unexpected http return code for users/lookup.");
         }
         return response.extract_utf8string();
     }).then([](std::string body) {
@@ -321,6 +321,45 @@ pplx::task<std::vector<User>> Tweeteria::getUsers(std::vector<UserId> const& use
     });
 }
 
+pplx::task<std::vector<Tweet>> Tweeteria::getTweets(std::vector<TweetId> const& tweet_ids)
+{
+    if(tweet_ids.empty()) { return pplx::task_from_result(std::vector<Tweet>()); }
+    if(tweet_ids.size() > 100) { throw InvalidArgument("Not more than 100 ids per request allowed."); }
+
+    std::string csv_list_acc;
+    bool is_first = true;
+    for(auto const& id : tweet_ids) {
+        if(is_first) {
+            is_first = false;
+        } else {
+            csv_list_acc.append("%2C");
+        }
+        csv_list_acc.append(std::to_string(id.id));
+    }
+    auto const csv_list = toUtilString(csv_list_acc);
+    web::http::uri_builder request_uri(U("/statuses/lookup.json"));
+    request_uri.append_query(U("tweet_mode"), U("extended"));
+    request_uri.append_query(U("id"), csv_list, false);
+    request_uri.append_query(U("trim_user"), U("true"));
+    web::http::http_request request(web::http::methods::GET);
+    request.set_request_uri(request_uri.to_uri());
+    return m_pimpl->http_client.request(request).then([](web::http::http_response response)
+    {
+        if(response.status_code() != web::http::status_codes::OK) {
+            throw APIProtocolViolation("Unexpected http return code for statuses/lookup.");
+        }
+        return response.extract_utf8string();
+    }).then([](std::string body) {
+        rapidjson::Document d;
+        d.Parse(body);
+        std::vector<Tweet> ret;
+        ret.reserve(d.Size());
+        std::transform(d.Begin(), d.End(), std::back_inserter(ret), Tweet::fromJSON);
+        return ret;
+    });
+
+}
+
 pplx::task<std::vector<Tweet>> Tweeteria::getUserTimeline(UserId user_id, TweetId max_id)
 {
     web::http::uri_builder request_uri(U("/statuses/user_timeline.json"));
@@ -330,6 +369,7 @@ pplx::task<std::vector<Tweet>> Tweeteria::getUserTimeline(UserId user_id, TweetI
     if(max_id != TweetId(0)) {
         request_uri.append_query(U("max_id"), max_id.id);
     }
+    request_uri.append_query(U("tweet_mode"), U("extended"));
     request_uri.append_query(U("trim_user"), U("1"));
     request_uri.append_query(U("exclude_replies"), U("1"));
     web::http::http_request request(web::http::methods::GET);

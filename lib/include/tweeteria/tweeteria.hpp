@@ -109,6 +109,8 @@ public:
     pplx::task<std::vector<Tweet>> getUserTimeline(UserId user_id, TweetId max_id = TweetId(0));
 
     pplx::task<std::vector<User>> getUsers(std::vector<UserId> const& user_ids);
+
+    pplx::task<std::vector<Tweet>> getTweets(std::vector<TweetId> const& tweet_ids);
 };
 }
 

@@ -33,6 +33,7 @@ struct Tweet {
     std::shared_ptr<Tweet> retweeted_status;
 
     std::string text;
+    Indices display_text_range;
     UserId user_id;
 
     static Tweet fromJSON(rapidjson::Value const& val);

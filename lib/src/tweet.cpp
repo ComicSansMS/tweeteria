@@ -48,7 +48,8 @@ Tweet Tweet::fromJSON(rapidjson::Value const& val)
         ret.retweeted_status = nullptr;
     }
 
-    ret.text = val["text"].Get<std::string>();
+    ret.text = val["full_text"].Get<std::string>();
+    ret.display_text_range = Indices::fromJSON(val["display_text_range"]);
     ret.user_id = UserId(val["user"]["id"].GetUint64());
     return ret;
 }
