@@ -43,7 +43,7 @@ public:
     TweetsList(QWidget* parent);
 
     void clearAllTweets();
-    TweetWidget* addTweetWidget(tweeteria::Tweet const& tweet, tweeteria::User const& author);
+    TweetWidget* addTweetWidget(tweeteria::Tweet const& tweet, tweeteria::User const& author, tweeteria::User const& displayed_author);
 };
 
 #endif

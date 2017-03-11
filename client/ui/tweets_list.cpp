@@ -55,9 +55,9 @@ void TweetsList::clearAllTweets()
     }
 }
 
-TweetWidget* TweetsList::addTweetWidget(tweeteria::Tweet const& tweet, tweeteria::User const& author)
+TweetWidget* TweetsList::addTweetWidget(tweeteria::Tweet const& tweet, tweeteria::User const& author, tweeteria::User const& displayed_author)
 {
-    auto tweet_widget = new TweetWidget(tweet, author, m_list);
+    auto tweet_widget = new TweetWidget(tweet, author, displayed_author, m_list);
     if(!m_elements.empty()) { m_layout.addSpacing(10); }
     m_layout.addWidget(tweet_widget);
     m_elements.push_back(tweet_widget);

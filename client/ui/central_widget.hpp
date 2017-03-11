@@ -79,6 +79,8 @@ public slots:
     void populateUsers(std::vector<tweeteria::User> const& users);
     void populateTweets();
     void nextPage();
+private slots:
+    void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
 };
 
 #endif

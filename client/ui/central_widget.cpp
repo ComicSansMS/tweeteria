@@ -27,6 +27,8 @@
 #include <tweeteria/image_util.hpp>
 #include <tweeteria/tweeteria.hpp>
 
+#include <gbBase/Log.hpp>
+
 CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, QWidget* parent)
     :QWidget(parent), m_tweeteria(&tweeteria),
      m_webResourceProvider(new WebResourceProvider()), m_imageProvider(new ImageProvider(*m_webResourceProvider)),
@@ -150,11 +152,13 @@ void CentralWidget::populateTweets()
     std::vector<QListWidgetItem*> tweet_list_items;
     for(std::size_t i=0; i<m_tweets.size(); ++i)
     {
-        tweeteria::Tweet const& tweet = (m_tweets[i].retweeted_status) ? (*m_tweets[i].retweeted_status) : m_tweets[i];
+        tweeteria::Tweet const& tweet = m_tweets[i];
+        tweeteria::Tweet const& displayed_tweet = (tweet.retweeted_status) ? (*tweet.retweeted_status) : tweet;
         tweeteria::User const& author = m_userDb[tweet.user_id];
-        auto tweet_widget = m_tweetsList->addTweetWidget(tweet, author);
+        tweeteria::User const& displayed_author = m_userDb[displayed_tweet.user_id];
+        auto tweet_widget = m_tweetsList->addTweetWidget(tweet, author, displayed_author);
 
-        auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(author.profile_image_url_https).normal;
+        auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(displayed_author.profile_image_url_https).normal;
         m_imageProvider->retrieve(img_url, [tweet_widget](QPixmap pic) {
             emit tweet_widget->imageArrived(pic);
         });
@@ -172,5 +176,11 @@ void CentralWidget::populateTweets()
                 auto type = tweet.entities.media.back().type;    // todo
             }
         }
+        connect(tweet_widget, &TweetWidget::markedAsRead, this, &CentralWidget::markTweetAsRead);
     }
+}
+
+void CentralWidget::markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id)
+{
+    GHULBUS_LOG(Trace, "markedTweetAsRead - " << tweet_id.id << " for author " << author_id.id);
 }
