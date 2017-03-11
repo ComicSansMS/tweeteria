@@ -37,6 +37,7 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, QWidget* parent)
 {
     m_usersList->setMinimumWidth(600);
     m_centralLayout.addWidget(m_usersList);
+    m_usersList->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     m_usersList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_usersList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
