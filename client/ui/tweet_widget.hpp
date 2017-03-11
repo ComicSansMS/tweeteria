@@ -51,6 +51,7 @@ private:
         QMenu* menu;
         QAction* markAsRead;
         QAction* copyUrl;
+        QAction* copyJSON;
         QAction* openInBrowser;
 
         Menu(TweetWidget* parent);
@@ -68,6 +69,7 @@ private slots:
     void openMenu();
     void markAsRead();
     void copyUrl();
+    void copyJSON();
     void openInBrowser();
 };
 

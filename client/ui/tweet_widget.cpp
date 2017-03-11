@@ -98,12 +98,15 @@ TweetWidget::Menu::Menu(TweetWidget* parent)
     :menu(new QMenu(parent)),
      markAsRead(new QAction("&Mark as read", menu)),
      copyUrl(new QAction("&Copy URL to clipboard", menu)),
+     copyJSON(new QAction("Copy &JSON to clipboard", menu)),
      openInBrowser(new QAction("&Open in external Browser...", menu))
 {
     menu->addAction(markAsRead);
     connect(markAsRead, &QAction::triggered, parent, &TweetWidget::markAsRead);
     menu->addAction(copyUrl);
     connect(copyUrl, &QAction::triggered, parent, &TweetWidget::copyUrl);
+    menu->addAction(copyJSON);
+    connect(copyJSON, &QAction::triggered, parent, &TweetWidget::copyJSON);
     menu->addAction(openInBrowser);
     connect(openInBrowser, &QAction::triggered, parent, &TweetWidget::openInBrowser);
 }
@@ -135,13 +138,17 @@ void TweetWidget::markAsRead()
 
 void TweetWidget::copyUrl()
 {
-    GHULBUS_LOG(Trace, "copyUrl");
     QClipboard* clipboard = QApplication::clipboard();
     clipboard->setText(QString::fromStdString(m_tweet.getUrl(m_author)));
 }
 
+void TweetWidget::copyJSON()
+{
+    QClipboard* clipboard = QApplication::clipboard();
+    clipboard->setText(QString::fromStdString(m_tweet.getPrettyJSON()));
+}
+
 void TweetWidget::openInBrowser()
 {
-    GHULBUS_LOG(Trace, "openInBrowser");
     QDesktopServices::openUrl(QUrl(QString::fromStdString(m_tweet.getUrl(m_author)), QUrl::StrictMode));
 }
