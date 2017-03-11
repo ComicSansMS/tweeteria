@@ -36,6 +36,7 @@ class TweetsList : public QScrollArea
     Q_OBJECT
 private:
     QWidget* m_list;
+    QBoxLayout m_outerLayout;
     QBoxLayout m_layout;
     std::vector<TweetWidget*> m_elements;
 public:

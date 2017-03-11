@@ -30,6 +30,13 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     GHULBUS_PRECONDITION_MESSAGE(t.user_id == author.id, "Author user must match tweet user.");
     m_layout.addLayout(&m_topRowLayout);
 
+    {
+        auto pal = palette();
+        pal.setColor(QPalette::Background, Qt::white);
+        setAutoFillBackground(true);
+        setPalette(pal);
+    }
+
     m_avatar->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
     m_avatar->setStyleSheet("QLabel { background-color: #FF8080 }");
     m_avatar->setMinimumSize(48, 48);
@@ -70,6 +77,8 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     connect(this, &TweetWidget::mediaArrived, this, &TweetWidget::onMediaArrived, Qt::ConnectionType::BlockingQueuedConnection);
 
     setMinimumWidth(590);
+
+    m_layout.setContentsMargins(24, 24, 24, 24);
 
     setLayout(&m_layout);
 }

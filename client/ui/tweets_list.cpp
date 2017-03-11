@@ -17,6 +17,8 @@
  */
 #include <ui/tweets_list.hpp>
 
+#include <QScrollBar>
+
 #include <tweeteria/tweet.hpp>
 #include <tweeteria/user.hpp>
 
@@ -26,14 +28,17 @@
 #include <algorithm>
 
 TweetsList::TweetsList(QWidget* parent)
-    :QScrollArea(parent), m_list(new QWidget(this)), m_layout(QBoxLayout::TopToBottom)
+    :QScrollArea(parent), m_list(new QWidget(this)), m_outerLayout(QBoxLayout::LeftToRight), m_layout(QBoxLayout::TopToBottom)
 {
-    m_list->setLayout(&m_layout);
+    m_outerLayout.addStretch();
+    m_outerLayout.addLayout(&m_layout);
+    m_outerLayout.addStretch();
+    m_list->setLayout(&m_outerLayout);
     setWidget(m_list);
     setWidgetResizable(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    m_list->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_outerLayout.setContentsMargins(0, 0, verticalScrollBar()->width(), 0);
 }
 
 void TweetsList::clearAllTweets()
@@ -42,11 +47,18 @@ void TweetsList::clearAllTweets()
         delete w;
     }
     m_elements.clear();
+    verticalScrollBar()->setValue(verticalScrollBar()->minimum());
+    for(int i = m_layout.count() - 1; i >= 0; --i)
+    {
+        auto item = m_layout.takeAt(i);
+        delete item;
+    }
 }
 
 TweetWidget* TweetsList::addTweetWidget(tweeteria::Tweet const& tweet, tweeteria::User const& author)
 {
     auto tweet_widget = new TweetWidget(tweet, author, m_list);
+    if(!m_elements.empty()) { m_layout.addSpacing(10); }
     m_layout.addWidget(tweet_widget);
     m_elements.push_back(tweet_widget);
     return tweet_widget;
