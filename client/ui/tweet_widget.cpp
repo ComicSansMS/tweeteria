@@ -30,8 +30,8 @@
 TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, tweeteria::User const& displayed_author, QWidget* parent)
     :QWidget(parent), m_tweet(t), m_author(author), m_displayedAuthor(displayed_author),
      m_avatar(new QLabel(this)), m_name(new QLabel(this)), m_twitterName(new QLabel(this)),
-     m_menuButton(new QPushButton(this)), m_text(new QLabel(this)), m_media(new QLabel(this)), m_date(new QLabel(this)),
-     m_menu(new Menu(this))
+     m_menuButton(new QPushButton(this)), m_header(new QLabel(this)), m_text(new QLabel(this)), m_media(new QLabel(this)),
+     m_date(new QLabel(this)), m_menu(new Menu(this))
 {
     GHULBUS_PRECONDITION_MESSAGE(t.user_id == author.id, "Author user must match tweet user.");
     m_layout.addLayout(&m_topRowLayout);
@@ -65,6 +65,12 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     m_topRowLayout.addWidget(m_menuButton);
 
     auto const& displayed_tweet = (m_tweet.retweeted_status) ? (*m_tweet.retweeted_status) : m_tweet;
+    if(m_tweet.retweeted_status) {
+        m_header->setFont(QFont("Arial", 10));
+        m_header->setStyleSheet("QLabel { color: grey; }");
+        m_header->setText(QString::fromStdString(m_author.name + " Retweeted"));
+        m_layout.addWidget(m_header);
+    }
 
     m_layout.addStretch();
     m_text->setFont(QFont("Arial", 12));

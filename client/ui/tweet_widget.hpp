@@ -43,6 +43,7 @@ private:
     QLabel* m_name;
     QLabel* m_twitterName;
     QPushButton* m_menuButton;
+    QLabel* m_header;
     QLabel* m_text;
     QLabel* m_media;
     QLabel* m_date;
