@@ -39,10 +39,24 @@ TEST_CASE("Test getProfileImageUrlsFromBaseUrl()")
         }
     }
 
+    SECTION("Urls without file extensions are also valid")
+    {
+        auto const chopExt = [](std::string const& str) {
+            return str.substr(0, str.size() - 4);
+        };
+        for(char const* url : { http_normal, http_bigger, http_mini, http_original })
+        {
+            auto const profile_images = tweeteria::getProfileImageUrlsFromBaseUrl(chopExt(url));
+            CHECK(profile_images.normal   == chopExt(http_normal));
+            CHECK(profile_images.bigger   == chopExt(http_bigger));
+            CHECK(profile_images.mini     == chopExt(http_mini));
+            CHECK(profile_images.original == chopExt(http_original));
+        }
+    }
+
     SECTION("Invalid URL should throw")
     {
         CHECK_THROWS_AS(tweeteria::getProfileImageUrlsFromBaseUrl(""), tweeteria::InvalidArgument);
         CHECK_THROWS_AS(tweeteria::getProfileImageUrlsFromBaseUrl("foo"), tweeteria::InvalidArgument);
-        CHECK_THROWS_AS(tweeteria::getProfileImageUrlsFromBaseUrl("http://foo"), tweeteria::InvalidArgument);
     }
 }
