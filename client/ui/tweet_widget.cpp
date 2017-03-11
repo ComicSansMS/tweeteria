@@ -22,7 +22,7 @@
 #include <gbBase/Assert.hpp>
 
 TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent)
-    :QWidget(parent), m_parentWidget(parent), m_tweet(t),
+    :QWidget(parent), m_tweet(t),
      m_layout(QBoxLayout::TopToBottom), m_topRowLayout(QBoxLayout::LeftToRight),
      m_avatar(new QLabel(this)), m_nameLayout(QBoxLayout::TopToBottom), m_name(new QLabel(this)),
      m_twitterName(new QLabel(this)), m_text(new QLabel(this)), m_media(new QLabel(this)), m_date(new QLabel(this))
@@ -54,10 +54,6 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     m_text->setWordWrap(true);
     m_text->setMinimumSize(512, m_text->height() * 3);
     m_text->setOpenExternalLinks(true);
-    //static const int TabSize = 4;
-    //QFontMetrics metrics(m_text->font());
-    //QRect rect = metrics.boundingRect(QApplication::desktop()->geometry(), m_text->alignment() | Qt::TextWordWrap | Qt::TextExpandTabs, m_text->text(), TabSize);
-    //m_text->setMinimumHeight(rect.height());
     m_layout.addWidget(m_text);
 
     m_media->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
@@ -89,9 +85,4 @@ void TweetWidget::onMediaArrived(QPixmap p)
     m_media->setPixmap(scaled);
     m_media->setMinimumSize(scaled.size());
     m_media->show();
-}
-
-void TweetWidget::resizeEvent(QResizeEvent*)
-{
-    m_parentWidget->adjustSize();
 }

@@ -30,6 +30,7 @@ TweetsList::TweetsList(QWidget* parent)
 {
     m_list->setLayout(&m_layout);
     setWidget(m_list);
+    setWidgetResizable(true);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     m_list->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
