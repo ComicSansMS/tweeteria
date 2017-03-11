@@ -3,10 +3,12 @@
 
 #include <tweeteria/exceptions.hpp>
 #include <tweeteria/string_util.hpp>
+#include <tweeteria/user.hpp>
 
 #include <rapidjson/document.h>
 
 #include <algorithm>
+#include <stdexcept>
 
 namespace tweeteria
 {
@@ -52,6 +54,12 @@ Tweet Tweet::fromJSON(rapidjson::Value const& val)
     ret.display_text_range = Indices::fromJSON(val["display_text_range"]);
     ret.user_id = UserId(val["user"]["id"].GetUint64());
     return ret;
+}
+
+std::string Tweet::getUrl(User const& author) const
+{
+    if(author.id != user_id) { throw InvalidArgument("Provided User is not the author of this tweet."); }
+    return std::string("https://twitter.com/") + author.screen_name + "/status/" + std::to_string(id.id);
 }
 
 struct Replacement {

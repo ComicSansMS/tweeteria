@@ -13,6 +13,8 @@
 
 namespace tweeteria
 {
+struct User;
+
 struct Tweet {
     std::string created_at;
     Entities entities;
@@ -38,7 +40,9 @@ struct Tweet {
 
     static Tweet fromJSON(rapidjson::Value const& val);
 
+    std::string getUrl(User const& author) const;
     std::string getDisplayText() const;
+    
 };
 }
 
