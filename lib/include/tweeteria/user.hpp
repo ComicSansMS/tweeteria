@@ -23,7 +23,11 @@ struct User {
     std::uint32_t favourites_count;
     std::string profile_image_url_https;
 
+    std::string raw_json;
+
     static User fromJSON(rapidjson::Value const& val);
+
+    std::string getPrettyJSON() const;
 };
 }
 

@@ -6,6 +6,8 @@
 #include <tweeteria/user.hpp>
 
 #include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/writer.h>
 
 #include <algorithm>
 #include <stdexcept>
@@ -53,6 +55,12 @@ Tweet Tweet::fromJSON(rapidjson::Value const& val)
     ret.text = val["full_text"].Get<std::string>();
     ret.display_text_range = Indices::fromJSON(val["display_text_range"]);
     ret.user_id = UserId(val["user"]["id"].GetUint64());
+
+    rapidjson::StringBuffer buffer;
+    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    val.Accept(writer);
+    ret.raw_json = std::string(buffer.GetString(), buffer.GetSize());
+
     return ret;
 }
 
@@ -60,6 +68,16 @@ std::string Tweet::getUrl(User const& author) const
 {
     if(author.id != user_id) { throw InvalidArgument("Provided User is not the author of this tweet."); }
     return std::string("https://twitter.com/") + author.screen_name + "/status/" + std::to_string(id.id);
+}
+
+std::string Tweet::getPrettyJSON() const
+{
+    rapidjson::Document d;
+    d.Parse(raw_json);
+    rapidjson::StringBuffer buffer;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+    d.Accept(writer);
+    return std::string(buffer.GetString(), buffer.GetSize());
 }
 
 struct Replacement {

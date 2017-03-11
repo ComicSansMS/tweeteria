@@ -38,11 +38,13 @@ struct Tweet {
     Indices display_text_range;
     UserId user_id;
 
+    std::string raw_json;
+
     static Tweet fromJSON(rapidjson::Value const& val);
 
     std::string getUrl(User const& author) const;
+    std::string getPrettyJSON() const;
     std::string getDisplayText() const;
-    
 };
 }
 
