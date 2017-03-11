@@ -23,23 +23,39 @@
 
 #include <QBoxLayout>
 #include <QLabel>
+#include <QMenu>
 #include <QPixmap>
+#include <QPushButton>
 #include <QWidget>
+
 
 class TweetWidget : public QWidget
 {
     Q_OBJECT
 private:
     tweeteria::Tweet m_tweet;
+    tweeteria::User m_author;
     QVBoxLayout m_layout;
     QHBoxLayout m_topRowLayout;
     QLabel* m_avatar;
     QVBoxLayout m_nameLayout;
     QLabel* m_name;
     QLabel* m_twitterName;
+    QPushButton* m_menuButton;
     QLabel* m_text;
     QLabel* m_media;
     QLabel* m_date;
+
+    class Menu {
+    public:
+        QMenu* menu;
+        QAction* markAsRead;
+        QAction* copyUrl;
+        QAction* openInBrowser;
+
+        Menu(TweetWidget* parent);
+    };
+    Menu* m_menu;
 public:
     TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent=nullptr);
 
@@ -49,6 +65,10 @@ signals:
 private slots:
     void onImageArrived(QPixmap p);
     void onMediaArrived(QPixmap p);
+    void openMenu();
+    void markAsRead();
+    void copyUrl();
+    void openInBrowser();
 };
 
 #endif

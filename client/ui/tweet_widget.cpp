@@ -19,12 +19,19 @@
 
 #include <ui/tweets_list.hpp>
 
+#include <QApplication>
+#include <QClipboard>
+#include <QDesktopServices>
+#include <QUrl>
+
 #include <gbBase/Assert.hpp>
+#include <gbBase/Log.hpp>
 
 TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, QWidget* parent)
-    :QWidget(parent), m_tweet(t),
-     m_avatar(new QLabel(this)), m_name(new QLabel(this)),
-     m_twitterName(new QLabel(this)), m_text(new QLabel(this)), m_media(new QLabel(this)), m_date(new QLabel(this))
+    :QWidget(parent), m_tweet(t), m_author(author),
+     m_avatar(new QLabel(this)), m_name(new QLabel(this)), m_twitterName(new QLabel(this)),
+     m_menuButton(new QPushButton(this)), m_text(new QLabel(this)), m_media(new QLabel(this)), m_date(new QLabel(this)),
+     m_menu(new Menu(this))
 {
     GHULBUS_PRECONDITION_MESSAGE(t.user_id == author.id, "Author user must match tweet user.");
     m_layout.addLayout(&m_topRowLayout);
@@ -44,14 +51,18 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
 
     m_nameLayout.addStretch();
     m_name->setFont(QFont("Arial", 18, QFont::Bold));
-    m_name->setText(QString::fromStdString(author.name));
+    m_name->setText(QString::fromStdString(m_author.name));
     m_nameLayout.addWidget(m_name);
 
-    m_twitterName->setText(QString("@") + QString::fromStdString(author.screen_name));
+    m_twitterName->setText(QString("@") + QString::fromStdString(m_author.screen_name));
     m_twitterName->setFont(QFont("Arial", 12));
     m_twitterName->setStyleSheet("QLabel { color: grey; }");
     m_nameLayout.addWidget(m_twitterName);
     m_nameLayout.addStretch();
+
+    m_menuButton->setText("+");
+    m_topRowLayout.addStretch();
+    m_topRowLayout.addWidget(m_menuButton);
 
     m_layout.addStretch();
     m_text->setFont(QFont("Arial", 12));
@@ -74,11 +85,27 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     connect(this, &TweetWidget::imageArrived, this, &TweetWidget::onImageArrived, Qt::ConnectionType::QueuedConnection);
     connect(this, &TweetWidget::mediaArrived, this, &TweetWidget::onMediaArrived, Qt::ConnectionType::BlockingQueuedConnection);
 
+    connect(m_menuButton, &QPushButton::clicked, this, &TweetWidget::openMenu);
+
     setMinimumWidth(590);
 
     m_layout.setContentsMargins(24, 24, 24, 24);
 
     setLayout(&m_layout);
+}
+
+TweetWidget::Menu::Menu(TweetWidget* parent)
+    :menu(new QMenu(parent)),
+     markAsRead(new QAction("&Mark as read", menu)),
+     copyUrl(new QAction("&Copy URL to clipboard", menu)),
+     openInBrowser(new QAction("&Open in external Browser...", menu))
+{
+    menu->addAction(markAsRead);
+    connect(markAsRead, &QAction::triggered, parent, &TweetWidget::markAsRead);
+    menu->addAction(copyUrl);
+    connect(copyUrl, &QAction::triggered, parent, &TweetWidget::copyUrl);
+    menu->addAction(openInBrowser);
+    connect(openInBrowser, &QAction::triggered, parent, &TweetWidget::openInBrowser);
 }
 
 void TweetWidget::onImageArrived(QPixmap p)
@@ -92,4 +119,29 @@ void TweetWidget::onMediaArrived(QPixmap p)
     m_media->setPixmap(scaled);
     m_media->setMinimumSize(scaled.size());
     m_media->show();
+}
+
+void TweetWidget::openMenu()
+{
+    auto popup_pos = m_menuButton->pos();
+    popup_pos += QPoint(0, m_menuButton->height());
+    m_menu->menu->popup(QWidget::mapToGlobal(popup_pos));
+}
+
+void TweetWidget::markAsRead()
+{
+    GHULBUS_LOG(Trace, "markAsRead");
+}
+
+void TweetWidget::copyUrl()
+{
+    GHULBUS_LOG(Trace, "copyUrl");
+    QClipboard* clipboard = QApplication::clipboard();
+    clipboard->setText(QString::fromStdString(m_tweet.getUrl(m_author)));
+}
+
+void TweetWidget::openInBrowser()
+{
+    GHULBUS_LOG(Trace, "openInBrowser");
+    QDesktopServices::openUrl(QUrl(QString::fromStdString(m_tweet.getUrl(m_author)), QUrl::StrictMode));
 }
