@@ -31,9 +31,12 @@
 #include <gbBase/Log.hpp>
 #include <gbBase/LogHandlers.hpp>
 
+#include <db/client_database.hpp>
+
 #include <cpprest/http_client.h>
 
 #include <QApplication>
+#include <QMessageBox>
 
 #include <fstream>
 #include <unordered_map>
@@ -67,6 +70,21 @@ int main(int argc, char* argv[])
     tweeteria::Tweeteria tweeteria(credentials);
     auto ft_cred = tweeteria.verifyCredentials();
     auto cred = ft_cred.get();
+    if(!cred.is_verified) {
+        QMessageBox msgBox;
+        msgBox.setText("Could not verify your credentials.");
+        msgBox.setInformativeText("The Twitter server rejected your login credentials.");
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        if(!cred.errors.errors.empty()) {
+            auto const error = cred.errors.errors.front();
+            msgBox.setDetailedText(QString("The reported error was:\n%1 - %2")
+                                    .arg(error.code)
+                                    .arg(QString::fromStdString(error.message)));
+        }
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.exec();
+        return 1;
+    }
 
     auto my_friends_ids = tweeteria.getMyFriendsIds();
     std::vector<tweeteria::UserId> friend_ids;
@@ -75,7 +93,7 @@ int main(int argc, char* argv[])
         auto const new_friends = my_friends_ids.nextPage().get();
         friend_ids.insert(end(friend_ids), begin(new_friends), end(new_friends));
     }
-    
+
     std::vector<tweeteria::User> users;
     for(std::size_t i=0; i<friend_ids.size();)
     {
