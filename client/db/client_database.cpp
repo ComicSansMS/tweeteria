@@ -20,6 +20,7 @@
 
 #include <db/table_layouts.hpp>
 
+#include <db/tables/friends.hpp>
 #include <db/tables/sqlite_master.hpp>
 #include <db/tables/tweeteria_client_properties.hpp>
 
@@ -112,12 +113,45 @@ ClientDatabase ClientDatabase::createNewDatabase(std::string const& db_filename)
     auto& db = pimpl->db;
 
     // create tables
-    auto const prop_tab = tables::TweeteriaClientProperties{};
     db.execute(table_layouts::tweeteria_client_properties());
+    db.execute(table_layouts::friends());
 
+    auto const prop_tab = tables::TweeteriaClientProperties{};
     db(insert_into(prop_tab).set(prop_tab.id    = "version",
                                  prop_tab.value = TweeteriaClientVersion::versionString()));
 
     GHULBUS_LOG(Info, " Successfully established database at " << db_filename << ".");
     return ClientDatabase(std::move(pimpl));
+}
+
+void ClientDatabase::updateUserRead(tweeteria::UserId user, tweeteria::TweetId tweet_read)
+{
+    auto& db = m_pimpl->db;
+    auto const tab = tables::Friends{};
+
+    auto const result = db(select(tab.lastReadId).from(tab).where(tab.userId == user.id));
+    if(!result.empty())
+    {
+        if(tweeteria::TweetId(result.front().lastReadId) >= tweet_read) {
+            // already up to date; nothing more to do
+            return;
+        }
+        GHULBUS_LOG(Trace, "Updating last read entry for user " << user.id << " to " << tweet_read.id << ".");
+        db(update(tab).set(tab.lastReadId = tweet_read.id).where(tab.userId == user.id));
+    } else {
+        GHULBUS_LOG(Trace, "Creating last read entry for user " << user.id << " to " << tweet_read.id << ".");
+        db(insert_into(tab).set(tab.userId = user.id, tab.lastReadId = tweet_read.id));
+    }
+}
+
+tweeteria::TweetId ClientDatabase::getLastReadForUser(tweeteria::UserId user)
+{
+    auto& db = m_pimpl->db;
+    auto const tab = tables::Friends{};
+
+    auto const result = db(select(tab.lastReadId).from(tab).where(tab.userId == user.id));
+    if(!result.empty()) {
+        return tweeteria::TweetId(result.front().lastReadId);
+    }
+    return tweeteria::TweetId(0);
 }

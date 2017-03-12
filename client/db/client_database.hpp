@@ -40,6 +40,10 @@ public:
     ClientDatabase& operator=(ClientDatabase&&) = default;
 
     static ClientDatabase createNewDatabase(std::string const& db_filename);
+
+    void updateUserRead(tweeteria::UserId user, tweeteria::TweetId tweet_read);
+
+    tweeteria::TweetId getLastReadForUser(tweeteria::UserId user);
 };
 
 #endif

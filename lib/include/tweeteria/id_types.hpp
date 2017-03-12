@@ -41,6 +41,24 @@ inline bool operator<(WrappedId<Id_T, Tag_T> const& lhs, WrappedId<Id_T, Tag_T> 
 {
     return lhs.id < rhs.id;
 }
+
+template<typename Id_T, typename Tag_T>
+inline bool operator>(WrappedId<Id_T, Tag_T> const& lhs, WrappedId<Id_T, Tag_T> const& rhs)
+{
+    return lhs.id > rhs.id;
+}
+
+template<typename Id_T, typename Tag_T>
+inline bool operator<=(WrappedId<Id_T, Tag_T> const& lhs, WrappedId<Id_T, Tag_T> const& rhs)
+{
+    return lhs.id <= rhs.id;
+}
+
+template<typename Id_T, typename Tag_T>
+inline bool operator>=(WrappedId<Id_T, Tag_T> const& lhs, WrappedId<Id_T, Tag_T> const& rhs)
+{
+    return lhs.id >= rhs.id;
+}
 }
 
 namespace std

@@ -24,7 +24,7 @@
 #include <QFileInfo>
 
 MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user)
-    :QMainWindow(), m_centralWidget(new CentralWidget(tweeteria, user, this)), m_database(nullptr)
+    :QMainWindow(), m_tweeteria(&tweeteria), m_centralWidget(new CentralWidget(tweeteria, user, this)), m_database(nullptr)
 {
     setWindowTitle("Tweeteria");
     setCentralWidget(m_centralWidget);
@@ -37,6 +37,8 @@ MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& u
     } else {
         m_database.reset(new ClientDatabase(ClientDatabase::createNewDatabase(database_filename)));
     }
+
+    connect(m_centralWidget, &CentralWidget::tweetMarkedAsRead, this, &MainWindow::markTweetAsRead);
 }
 
 MainWindow::~MainWindow()
@@ -47,4 +49,9 @@ MainWindow::~MainWindow()
 CentralWidget* MainWindow::getCentralWidget()
 {
     return m_centralWidget;
+}
+
+void MainWindow::markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId user_id)
+{
+    m_database->updateUserRead(user_id, tweet_id);
 }

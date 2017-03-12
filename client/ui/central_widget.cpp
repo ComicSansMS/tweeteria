@@ -192,5 +192,5 @@ void CentralWidget::populateTweets()
 
 void CentralWidget::markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id)
 {
-    GHULBUS_LOG(Trace, "markedTweetAsRead - " << tweet_id.id << " for author " << author_id.id);
+    emit tweetMarkedAsRead(tweet_id, author_id);
 }

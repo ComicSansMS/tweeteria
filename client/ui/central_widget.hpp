@@ -76,6 +76,7 @@ public:
 
 signals:
     void tweetsChanged();
+    void tweetMarkedAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
 
 public slots:
     void userSelected(QModelIndex const& user_item);

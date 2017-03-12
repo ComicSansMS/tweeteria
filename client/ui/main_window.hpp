@@ -23,6 +23,8 @@
 #include <QBoxLayout>
 #include <QListWidget>
 
+#include <tweeteria/id_types.hpp>
+
 #include <memory>
 
 class CentralWidget;
@@ -38,6 +40,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 private:
+    tweeteria::Tweeteria* m_tweeteria;
     CentralWidget* m_centralWidget;
     std::unique_ptr<ClientDatabase> m_database;
 public:
@@ -46,6 +49,9 @@ public:
     ~MainWindow();
 
     CentralWidget* getCentralWidget();
+
+public slots:
+    void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId user_id);
 };
 
 #endif
