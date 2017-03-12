@@ -45,6 +45,7 @@ class CentralWidget : public QWidget
     Q_OBJECT
 private:
     tweeteria::Tweeteria* m_tweeteria;
+    tweeteria::UserId m_owner;
     std::unique_ptr<WebResourceProvider> m_webResourceProvider;
     std::unique_ptr<ImageProvider> m_imageProvider;
 
@@ -68,8 +69,10 @@ private:
 
     tweeteria::User const* m_selectedUser;
 public:
-    CentralWidget(tweeteria::Tweeteria& tweeteria, QWidget* parent);
+    CentralWidget(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user, QWidget* parent);
     ~CentralWidget();
+
+    tweeteria::User const& getOwner() const;
 
 signals:
     void tweetsChanged();

@@ -15,37 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
-#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
+#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_VERSION_HPP
+#define TWEETERIA_CLIENT_INCLUDE_GUARD_VERSION_HPP
 
-#include <QMainWindow>
-
-#include <QBoxLayout>
-#include <QListWidget>
-
-#include <memory>
-
-class CentralWidget;
-
-namespace tweeteria {
-class Tweeteria;
-struct User;
-}
-
-class ClientDatabase;
-
-class MainWindow : public QMainWindow
+namespace TweeteriaClientVersion
 {
-    Q_OBJECT
-private:
-    CentralWidget* m_centralWidget;
-    std::unique_ptr<ClientDatabase> m_database;
-public:
-    MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user);
+    int majorVersion();
+    int minorVersion();
+    int patchVersion();
+    int version();
 
-    ~MainWindow();
-
-    CentralWidget* getCentralWidget();
+    char const* versionString();
 };
 
 #endif

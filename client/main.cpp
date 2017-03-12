@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
         users.insert(end(users), begin(new_friends), end(new_friends));
     }
 
-    MainWindow main_window(tweeteria);
+    MainWindow main_window(tweeteria, *cred.user);
     main_window.getCentralWidget()->populateUsers(users);
 
     main_window.resize(1230, 800);

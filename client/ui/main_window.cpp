@@ -19,12 +19,29 @@
 
 #include <ui/central_widget.hpp>
 
-MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria)
-    :QMainWindow(), m_centralWidget(new CentralWidget(tweeteria, this))
+#include <db/client_database.hpp>
+
+#include <QFileInfo>
+
+MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user)
+    :QMainWindow(), m_centralWidget(new CentralWidget(tweeteria, user, this)), m_database(nullptr)
 {
     setWindowTitle("Tweeteria");
     setCentralWidget(m_centralWidget);
     setStyleSheet("QMainWindow { background-color: white }");
+
+    std::string database_filename = user.screen_name + ".db";
+    QFileInfo check_file(QString::fromStdString(database_filename));
+    if(check_file.exists()) {
+        m_database.reset(new ClientDatabase(database_filename));
+    } else {
+        m_database.reset(new ClientDatabase(ClientDatabase::createNewDatabase(database_filename)));
+    }
+}
+
+MainWindow::~MainWindow()
+{
+    // for forward-declared database unique_ptr
 }
 
 CentralWidget* MainWindow::getCentralWidget()

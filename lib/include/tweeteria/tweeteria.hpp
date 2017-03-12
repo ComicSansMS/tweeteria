@@ -26,7 +26,7 @@ struct OAuthCredentials
     std::string access_token;
     std::string token_secret;
 
-    void serialize(std::ostream& os);
+    void serialize(std::ostream& os) const;
     static OAuthCredentials deserialize(std::istream& is);
 };
 
@@ -34,6 +34,7 @@ struct VerificationResult
 {
     bool is_verified;
     Errors errors;
+    std::shared_ptr<User> user;
 };
 
 template<typename T>

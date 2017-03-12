@@ -15,37 +15,34 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
-#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
+#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_DB_TABLE_LAYOUTS_HPP
+#define TWEETERIA_CLIENT_INCLUDE_GUARD_DB_TABLE_LAYOUTS_HPP
 
-#include <QMainWindow>
-
-#include <QBoxLayout>
-#include <QListWidget>
-
-#include <memory>
-
-class CentralWidget;
-
-namespace tweeteria {
-class Tweeteria;
-struct User;
+namespace table_layouts
+{
+inline namespace v10000
+{
+/** A key/value store for saving generic properties.
+ */
+inline constexpr char const* tweeteria_client_properties()
+{
+    return R"(
+        CREATE TABLE tweeteria_client_properties(
+            id    TEXT      PRIMARY KEY,
+            value TEXT
+        );)";
 }
 
-class ClientDatabase;
-
-class MainWindow : public QMainWindow
+/** Information about friends (ie. people you are following)
+ */
+inline constexpr char const* friends()
 {
-    Q_OBJECT
-private:
-    CentralWidget* m_centralWidget;
-    std::unique_ptr<ClientDatabase> m_database;
-public:
-    MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user);
-
-    ~MainWindow();
-
-    CentralWidget* getCentralWidget();
-};
-
+    return R"(
+        CREATE TABLE friends(
+            user_id         INTEGER   PRIMARY KEY,
+            last_read_id    INTEGER
+        );)";
+}
+}
+}
 #endif

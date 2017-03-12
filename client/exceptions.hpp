@@ -15,37 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
-#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
+#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_EXCEPTIONS_HPP
+#define TWEETERIA_CLIENT_INCLUDE_GUARD_EXCEPTIONS_HPP
 
-#include <QMainWindow>
+#include <gbBase/Exception.hpp>
 
-#include <QBoxLayout>
-#include <QListWidget>
-
-#include <memory>
-
-class CentralWidget;
-
-namespace tweeteria {
-class Tweeteria;
-struct User;
+namespace Exception_Info
+{
+namespace Tags
+{
+struct sqlite_error_code { };
+struct sqlite_query_string { };
 }
 
-class ClientDatabase;
-
-class MainWindow : public QMainWindow
+namespace Records
 {
-    Q_OBJECT
-private:
-    CentralWidget* m_centralWidget;
-    std::unique_ptr<ClientDatabase> m_database;
-public:
-    MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user);
+}
+}
 
-    ~MainWindow();
-
-    CentralWidget* getCentralWidget();
-};
+namespace Exceptions
+{
+struct DatabaseError : public Ghulbus::Exceptions::IOError {};
+}
 
 #endif

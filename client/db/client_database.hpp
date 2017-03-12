@@ -15,37 +15,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
-#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
+#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_DB_CLIENT_DATABASE_HPP
+#define TWEETERIA_CLIENT_INCLUDE_GUARD_DB_CLIENT_DATABASE_HPP
 
-#include <QMainWindow>
-
-#include <QBoxLayout>
-#include <QListWidget>
+#include <tweeteria/tweeteria.hpp>
 
 #include <memory>
+#include <string>
 
-class CentralWidget;
-
-namespace tweeteria {
-class Tweeteria;
-struct User;
-}
-
-class ClientDatabase;
-
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+class ClientDatabase {
 private:
-    CentralWidget* m_centralWidget;
-    std::unique_ptr<ClientDatabase> m_database;
+    struct Pimpl;
+    std::unique_ptr<Pimpl> m_pimpl;
+private:
+    ClientDatabase(std::unique_ptr<Pimpl>&& pimpl);
 public:
-    MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user);
+    ClientDatabase(std::string const& db_filename);
+    ~ClientDatabase();
 
-    ~MainWindow();
+    ClientDatabase(ClientDatabase const&) = delete;
+    ClientDatabase& operator=(ClientDatabase const&) = delete;
 
-    CentralWidget* getCentralWidget();
+    ClientDatabase(ClientDatabase&&) = default;
+    ClientDatabase& operator=(ClientDatabase&&) = default;
+
+    static ClientDatabase createNewDatabase(std::string const& db_filename);
 };
 
 #endif

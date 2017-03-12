@@ -27,16 +27,19 @@
 #include <tweeteria/image_util.hpp>
 #include <tweeteria/tweeteria.hpp>
 
+#include <gbBase/Assert.hpp>
 #include <gbBase/Log.hpp>
 
-CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, QWidget* parent)
-    :QWidget(parent), m_tweeteria(&tweeteria),
+CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user, QWidget* parent)
+    :QWidget(parent), m_tweeteria(&tweeteria), m_owner(user.id),
      m_webResourceProvider(new WebResourceProvider()), m_imageProvider(new ImageProvider(*m_webResourceProvider)),
      m_centralLayout(QBoxLayout::Direction::LeftToRight),
      m_usersList(new QListWidget(this)), m_rightPaneLayout(QBoxLayout::Direction::TopToBottom),
      m_tweetsList(new TweetsList(this)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
      m_nextPage(new QPushButton(this)), m_previousPage(new QPushButton(this)), m_selectedUser(nullptr)
 {
+    m_userDb[user.id] = user;
+
     m_usersList->setMinimumWidth(600);
     m_centralLayout.addWidget(m_usersList);
     m_usersList->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
@@ -63,6 +66,13 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, QWidget* parent)
 CentralWidget::~CentralWidget()
 {
     // needed for unique_ptrs to forward declared providers
+}
+
+tweeteria::User const& CentralWidget::getOwner() const
+{
+    auto it = m_userDb.find(m_owner);
+    GHULBUS_ASSERT_PRD_MESSAGE(it != end(m_userDb), "Seems we lost our owner.");
+    return it->second;
 }
 
 void CentralWidget::userSelected(QModelIndex const& user_item)

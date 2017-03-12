@@ -15,37 +15,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
-#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_MAIN_WINDOW_HPP
 
-#include <QMainWindow>
+#include <version.hpp>
 
-#include <QBoxLayout>
-#include <QListWidget>
+#define TWEETERIA_CLIENT_VERSION_MAJOR 0
+#define TWEETERIA_CLIENT_VERSION_MINOR 9
+#define TWEETERIA_CLIENT_VERSION_PATCH 0
+#define STRINGIFY(x) #x
+#define TO_STRING(x) STRINGIFY(x)
 
-#include <memory>
-
-class CentralWidget;
-
-namespace tweeteria {
-class Tweeteria;
-struct User;
+namespace TweeteriaClientVersion
+{
+int majorVersion()
+{
+    return TWEETERIA_CLIENT_VERSION_MAJOR;
 }
 
-class ClientDatabase;
-
-class MainWindow : public QMainWindow
+int minorVersion()
 {
-    Q_OBJECT
-private:
-    CentralWidget* m_centralWidget;
-    std::unique_ptr<ClientDatabase> m_database;
-public:
-    MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user);
+    return TWEETERIA_CLIENT_VERSION_MINOR;
+}
 
-    ~MainWindow();
+int patchVersion()
+{
+    return TWEETERIA_CLIENT_VERSION_PATCH;
+}
 
-    CentralWidget* getCentralWidget();
-};
+int version()
+{
+    return TWEETERIA_CLIENT_VERSION_MAJOR * 10000 + TWEETERIA_CLIENT_VERSION_MINOR * 100 + TWEETERIA_CLIENT_VERSION_PATCH;
+}
 
-#endif
+char const* versionString()
+{
+    return TO_STRING(TWEETERIA_CLIENT_VERSION_MAJOR) "." TO_STRING(TWEETERIA_CLIENT_VERSION_MINOR) "." TO_STRING(TWEETERIA_CLIENT_VERSION_PATCH);
+}
+}
+

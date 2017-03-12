@@ -101,7 +101,7 @@ std::string deserialize_string(std::istream& is)
 namespace tweeteria
 {
 
-void OAuthCredentials::serialize(std::ostream& os)
+void OAuthCredentials::serialize(std::ostream& os) const
 {
     serialize_string("TWT100", os);
     serialize_string(consumer_key, os);
@@ -164,13 +164,18 @@ pplx::task<VerificationResult> Tweeteria::verifyCredentials()
     {
         auto const status_code = response.status_code();
         if(status_code == web::http::status_codes::OK) {
-            return pplx::task_from_result<VerificationResult>(VerificationResult{ true, Errors{} });
+            return response.extract_utf8string().then([status_code](std::string body)
+            {
+                rapidjson::Document d;
+                d.Parse(body);
+                return VerificationResult{ true, Errors{}, std::make_shared<User>(User::fromJSON(d)) };
+            });
         } else if(status_code == web::http::status_codes::Unauthorized) {
             return response.extract_utf8string().then([status_code](std::string body)
             {
                 rapidjson::Document d;
                 d.Parse(body);
-                return VerificationResult{ false, Errors::fromJSON(d) };
+                return VerificationResult{ false, Errors::fromJSON(d), nullptr };
             });
         } else {
             throw APIProtocolViolation("Unexpected http return code for account/verify_credentials.");
