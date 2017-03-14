@@ -23,6 +23,9 @@
 
 #include <QFileInfo>
 
+#include <gbBase/Assert.hpp>
+#include <gbBase/Log.hpp>
+
 MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user)
     :QMainWindow(), m_tweeteria(&tweeteria), m_centralWidget(new CentralWidget(tweeteria, user, this)), m_database(nullptr)
 {
@@ -44,6 +47,48 @@ MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& u
 MainWindow::~MainWindow()
 {
     // for forward-declared database unique_ptr
+}
+
+void MainWindow::populateUsers()
+{
+    std::vector<tweeteria::UserId> acc;
+    acc.reserve(100);
+    getUserIds_impl(std::make_shared<tweeteria::MultiPageResult<std::vector<tweeteria::UserId>>>(m_tweeteria->getMyFriendsIds()), std::move(acc));
+}
+
+void MainWindow::getUserIds_impl(std::shared_ptr<tweeteria::MultiPageResult<std::vector<tweeteria::UserId>>> mpres,
+                                 std::vector<tweeteria::UserId>&& acc)
+{
+    GHULBUS_PRECONDITION(!mpres->done());
+    mpres->nextPage().then([this, mpres, acc = std::move(acc)](std::vector<tweeteria::UserId> const& new_ids) mutable {
+        std::size_t left_to_full = 100 - acc.size();
+        if(new_ids.size() > left_to_full) {
+            acc.insert(end(acc), begin(new_ids), begin(new_ids) + left_to_full);
+            m_tweeteria->getUsers(acc).then([this](std::vector<tweeteria::User> const& new_users) { getUserDetails_impl(new_users); });
+            acc.assign(begin(new_ids) + left_to_full, end(new_ids));
+        } else {
+            acc.insert(end(acc), begin(new_ids), end(new_ids));
+        }
+        if(mpres->done()) {
+            if(!acc.empty()) {
+                m_tweeteria->getUsers(acc).then([this](std::vector<tweeteria::User> const& new_users) { getUserDetails_impl(new_users); });
+            }
+        } else {
+            getUserIds_impl(std::move(mpres), std::move(acc));
+        }
+    });
+}
+
+void MainWindow::getUserDetails_impl(std::vector<tweeteria::User> const& new_users)
+{
+    for(auto const& u : new_users) {
+        m_tweeteria->getUserTimeline(u.id).then([this, u_id = u.id](std::vector<tweeteria::Tweet> const& tweets) {
+            GHULBUS_LOG(Trace, "New tweets for user " << u_id.id);
+            emit newTweets(tweets);
+        });
+        GHULBUS_LOG(Trace, "Update info for user " << u.id.id);
+        emit userInfoUpdate(u);
+    }
 }
 
 CentralWidget* MainWindow::getCentralWidget()

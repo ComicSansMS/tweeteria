@@ -4,6 +4,7 @@
 
 #include <tweeteria/cursor.hpp>
 #include <tweeteria/error.hpp>
+#include <tweeteria/exceptions.hpp>
 #include <tweeteria/id_types.hpp>
 #include <tweeteria/tweet.hpp>
 #include <tweeteria/user.hpp>
@@ -14,7 +15,6 @@
 #include <functional>
 #include <memory>
 #include <vector>
-
 #include <tuple>
 
 namespace tweeteria
@@ -49,6 +49,7 @@ public:
     explicit MultiPageResult(RetrievalFunc retrieval_func)
         :m_retrieve(retrieval_func)
     {
+        if(!m_retrieve) { throw InvalidArgument("Empty retrieval function."); }
         m_cursor.next_cursor = CursorId(-1);
         m_cursor.previous_cursor = CursorId(-1);
     }

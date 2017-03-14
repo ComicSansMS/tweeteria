@@ -108,9 +108,20 @@ void CentralWidget::nextPage()
     }
 }
 
+void CentralWidget::onUserInfoUpdate(tweeteria::User const& updated_user)
+{
+    auto it = std::find_if(begin(m_users), end(m_users), [&updated_user](tweeteria::User const& u) { return u.id == updated_user.id; });
+    if(it != end(m_users)) {
+        *it = updated_user;
+    } else {
+        it = m_users.insert(end(m_users), updated_user);
+    }
+
+}
+
 void CentralWidget::populateUsers(std::vector<tweeteria::User> const& users)
 {
-    m_users = users;
+    m_users.insert(end(m_users), begin(users), end(users));
     std::vector<UserWidget*> user_widgets;
     std::vector<QListWidgetItem*> list_items;
     for(auto const& u : users) {

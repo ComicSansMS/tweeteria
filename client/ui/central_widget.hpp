@@ -80,6 +80,7 @@ signals:
 
 public slots:
     void userSelected(QModelIndex const& user_item);
+    void onUserInfoUpdate(tweeteria::User const& updated_user);
     void populateUsers(std::vector<tweeteria::User> const& users);
     void populateTweets();
     void nextPage();

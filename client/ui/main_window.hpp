@@ -32,6 +32,10 @@ class CentralWidget;
 namespace tweeteria {
 class Tweeteria;
 struct User;
+struct Tweet;
+
+template <typename T>
+class MultiPageResult;
 }
 
 class ClientDatabase;
@@ -48,10 +52,24 @@ public:
 
     ~MainWindow();
 
+    void populateUsers();
+
     CentralWidget* getCentralWidget();
+
+signals:
+    void userInfoUpdate(tweeteria::User const&);
+    void newTweets(std::vector<tweeteria::Tweet> const&);
 
 public slots:
     void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId user_id);
+
+private:
+    void getUserIds_impl(std::shared_ptr<tweeteria::MultiPageResult<std::vector<tweeteria::UserId>>> mpres,
+                         std::vector<tweeteria::UserId>&& acc);
+
+    void getUserDetails_impl(std::vector<tweeteria::User> const& new_users);
+
+    void getUserTimeline_impl(tweeteria::UserId user, tweeteria::TweetId cursor_id);
 };
 
 #endif
