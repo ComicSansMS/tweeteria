@@ -105,8 +105,8 @@ int main(int argc, char* argv[])
     }
 
     MainWindow main_window(tweeteria, *cred.user);
-    //main_window.populateUsers();
-    main_window.getCentralWidget()->populateUsers(users);
+    main_window.populateUsers();
+    //main_window.getCentralWidget()->populateUsers(users);
 
     main_window.resize(1230, 800);
     main_window.show();

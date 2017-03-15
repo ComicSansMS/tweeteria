@@ -18,13 +18,15 @@
 #include <ui/main_window.hpp>
 
 #include <ui/central_widget.hpp>
-
 #include <db/client_database.hpp>
 
 #include <QFileInfo>
 
 #include <gbBase/Assert.hpp>
 #include <gbBase/Log.hpp>
+
+
+Q_DECLARE_METATYPE(tweeteria::User)
 
 MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user)
     :QMainWindow(), m_tweeteria(&tweeteria), m_centralWidget(new CentralWidget(tweeteria, user, this)), m_database(nullptr)
@@ -41,7 +43,9 @@ MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& u
         m_database.reset(new ClientDatabase(ClientDatabase::createNewDatabase(database_filename)));
     }
 
+    qRegisterMetaType<tweeteria::User>();
     connect(m_centralWidget, &CentralWidget::tweetMarkedAsRead, this, &MainWindow::markTweetAsRead);
+    connect(this, &MainWindow::userInfoUpdate, m_centralWidget, &CentralWidget::onUserInfoUpdate, Qt::QueuedConnection);
 }
 
 MainWindow::~MainWindow()
@@ -84,7 +88,7 @@ void MainWindow::getUserDetails_impl(std::vector<tweeteria::User> const& new_use
     for(auto const& u : new_users) {
         m_tweeteria->getUserTimeline(u.id).then([this, u_id = u.id](std::vector<tweeteria::Tweet> const& tweets) {
             GHULBUS_LOG(Trace, "New tweets for user " << u_id.id);
-            emit newTweets(tweets);
+            emit newTweets(QVector<tweeteria::Tweet>::fromStdVector(tweets));
         });
         GHULBUS_LOG(Trace, "Update info for user " << u.id.id);
         emit userInfoUpdate(u);

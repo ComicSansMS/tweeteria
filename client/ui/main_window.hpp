@@ -58,7 +58,7 @@ public:
 
 signals:
     void userInfoUpdate(tweeteria::User const&);
-    void newTweets(std::vector<tweeteria::Tweet> const&);
+    void newTweets(QVector<tweeteria::Tweet> const&);
 
 public slots:
     void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId user_id);

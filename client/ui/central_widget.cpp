@@ -117,6 +117,17 @@ void CentralWidget::onUserInfoUpdate(tweeteria::User const& updated_user)
         it = m_users.insert(end(m_users), updated_user);
     }
 
+    auto user_widget = new UserWidget(updated_user, this);
+    auto list_item = new QListWidgetItem(m_usersList);
+    list_item->setSizeHint(user_widget->minimumSizeHint());
+    m_usersList->setItemWidget(list_item, user_widget);
+    m_userDb[updated_user.id] = updated_user;
+
+    auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(updated_user.profile_image_url_https).bigger;
+
+    m_imageProvider->retrieve(img_url, [user_widget](QPixmap pic) {
+        user_widget->imageArrived(pic);
+    });
 }
 
 void CentralWidget::populateUsers(std::vector<tweeteria::User> const& users)
