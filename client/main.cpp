@@ -20,6 +20,7 @@
 #include <ui/user_widget.hpp>
 #include <ui/tweet_widget.hpp>
 
+#include <metatype_declarations.hpp>
 #include <image_provider.hpp>
 #include <web_resource_provider.hpp>
 
@@ -41,6 +42,12 @@
 #include <fstream>
 #include <unordered_map>
 
+void registerMetatypes()
+{
+    qRegisterMetaType<tweeteria::User>();
+    qRegisterMetaType<tweeteria::Tweet>();
+}
+
 int main(int argc, char* argv[])
 {
     QApplication theApp(argc, argv);
@@ -61,6 +68,8 @@ int main(int argc, char* argv[])
     Ghulbus::Log::setLogHandler(top_handler);
 
     GHULBUS_LOG(Info, "Tweeteria client up and running.");
+
+    registerMetatypes();
 
     tweeteria::OAuthCredentials credentials;
     {

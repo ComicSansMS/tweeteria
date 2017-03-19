@@ -50,6 +50,7 @@ source_group("Table Headers" FILES ${CLIENT_DATABASE_TABLE_HEADERS})
 set(CLIENT_HEADER_FILES
     ${CLIENT_SOURCE_DIR}/exceptions.hpp
     ${CLIENT_SOURCE_DIR}/image_provider.hpp
+    ${CLIENT_SOURCE_DIR}/metatype_declarations.hpp
     ${CLIENT_SOURCE_DIR}/version.hpp
     ${CLIENT_SOURCE_DIR}/web_resource_provider.hpp
     ${CLIENT_SOURCE_DIR}/db/client_database.hpp

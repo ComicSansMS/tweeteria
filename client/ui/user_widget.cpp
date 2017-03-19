@@ -49,9 +49,11 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     m_description->hide();
     //m_description->setOpenExternalLinks(true);
     //m_description->setText("Testtext <a href=\"http://www.google.de\">Link</a> More text.");
+
+    connect(this, &UserWidget::imageArrived, this, &UserWidget::onImageArrived, Qt::QueuedConnection);
 }
 
-void UserWidget::imageArrived(QPixmap const& image)
+void UserWidget::onImageArrived(QPixmap const& image)
 {
     m_profileImage->setPixmap(image);
 }

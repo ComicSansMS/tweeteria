@@ -126,31 +126,13 @@ void CentralWidget::onUserInfoUpdate(tweeteria::User const& updated_user)
     auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(updated_user.profile_image_url_https).bigger;
 
     m_imageProvider->retrieve(img_url, [user_widget](QPixmap pic) {
-        user_widget->imageArrived(pic);
+        emit user_widget->imageArrived(pic);
     });
 }
 
-void CentralWidget::populateUsers(std::vector<tweeteria::User> const& users)
+void CentralWidget::onUserTimelineUpdate(tweeteria::UserId user_id, QVector<tweeteria::Tweet> const& tweets)
 {
-    m_users.insert(end(m_users), begin(users), end(users));
-    std::vector<UserWidget*> user_widgets;
-    std::vector<QListWidgetItem*> list_items;
-    for(auto const& u : users) {
-        user_widgets.emplace_back(new UserWidget(u, this));
-        list_items.emplace_back(new QListWidgetItem(m_usersList));
-        list_items.back()->setSizeHint(user_widgets.back()->minimumSizeHint());
-        m_usersList->setItemWidget(list_items.back(), user_widgets.back());
-        m_userDb[u.id] = u;
-    }
 
-    for(std::size_t i=0; i<users.size(); ++i) {
-        auto user_widget_i = user_widgets[i];
-        auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(users[i].profile_image_url_https).bigger;
-
-        m_imageProvider->retrieve(img_url, [user_widget_i](QPixmap pic) {
-            user_widget_i->imageArrived(pic);
-        });
-    }
 }
 
 void CentralWidget::populateTweets()

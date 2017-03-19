@@ -15,33 +15,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_USER_WIDGET_HPP
-#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_USER_WIDGET_HPP
+#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_METATYPE_DECLARATIONS_HPP
+#define TWEETERIA_CLIENT_INCLUDE_GUARD_METATYPE_DECLARATIONS_HPP
 
+#include <QMetaType>
+
+#include <tweeteria/id_types.hpp>
+#include <tweeteria/tweet.hpp>
 #include <tweeteria/user.hpp>
 
-#include <QBoxLayout>
-#include <QLabel>
-#include <QPixmap>
-#include <QWidget>
+Q_DECLARE_METATYPE(tweeteria::TweetId)
+Q_DECLARE_METATYPE(tweeteria::UserId)
+Q_DECLARE_METATYPE(tweeteria::Tweet)
+Q_DECLARE_METATYPE(tweeteria::User)
 
-class UserWidget : public QWidget
-{
-    Q_OBJECT
-private:
-    tweeteria::User m_user;
-    QBoxLayout m_layout;
-    QLabel* m_profileImage;
-    QBoxLayout m_rightLayout;
-    QLabel* m_userName;
-    QLabel* m_twitterName;
-    QLabel* m_description;
-public:
-    UserWidget(tweeteria::User const& u, QWidget* parent);
-public slots:
-    void onImageArrived(QPixmap const& image);
-signals:
-    void imageArrived(QPixmap const& image);
-};
 
 #endif

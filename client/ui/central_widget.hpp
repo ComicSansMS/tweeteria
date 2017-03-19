@@ -66,6 +66,7 @@ private:
     std::mutex m_mtx;
 
     std::unordered_map<tweeteria::UserId, tweeteria::User> m_userDb;
+    std::unordered_map<tweeteria::UserId, std::vector<tweeteria::Tweet>> m_userTimelines;
 
     tweeteria::User const* m_selectedUser;
 public:
@@ -81,9 +82,9 @@ signals:
 public slots:
     void userSelected(QModelIndex const& user_item);
     void onUserInfoUpdate(tweeteria::User const& updated_user);
-    void populateUsers(std::vector<tweeteria::User> const& users);
     void populateTweets();
     void nextPage();
+    void onUserTimelineUpdate(tweeteria::UserId user_id, QVector<tweeteria::Tweet> const& tweets);
 private slots:
     void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
 };

@@ -19,14 +19,12 @@
 
 #include <ui/central_widget.hpp>
 #include <db/client_database.hpp>
+#include <metatype_declarations.hpp>
 
 #include <QFileInfo>
 
 #include <gbBase/Assert.hpp>
 #include <gbBase/Log.hpp>
-
-
-Q_DECLARE_METATYPE(tweeteria::User)
 
 MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user)
     :QMainWindow(), m_tweeteria(&tweeteria), m_centralWidget(new CentralWidget(tweeteria, user, this)), m_database(nullptr)
@@ -43,7 +41,6 @@ MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& u
         m_database.reset(new ClientDatabase(ClientDatabase::createNewDatabase(database_filename)));
     }
 
-    qRegisterMetaType<tweeteria::User>();
     connect(m_centralWidget, &CentralWidget::tweetMarkedAsRead, this, &MainWindow::markTweetAsRead);
     connect(this, &MainWindow::userInfoUpdate, m_centralWidget, &CentralWidget::onUserInfoUpdate, Qt::QueuedConnection);
 }
