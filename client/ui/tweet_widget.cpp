@@ -62,6 +62,13 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, DataModel& data_model, QWidg
     m_nameLayout.addWidget(m_twitterName);
     m_nameLayout.addStretch();
 
+    if(!displayed_author) {
+        m_dataModel->awaitUserInfo(getDisplayedAuthorId(), [this](tweeteria::User const& displayed_author) {
+            m_name->setText(QString::fromStdString(displayed_author.name));
+            m_twitterName->setText(QString("@") + QString::fromStdString(displayed_author.screen_name));
+        });
+    }
+
     m_menuButton->setText("+");
     m_topRowLayout.addStretch();
     m_topRowLayout.addWidget(m_menuButton);

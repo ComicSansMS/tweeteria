@@ -37,7 +37,7 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_mo
      m_centralLayout(QBoxLayout::Direction::LeftToRight),
      m_usersList(new QListWidget(this)), m_rightPaneLayout(QBoxLayout::Direction::TopToBottom),
      m_tweetsList(new TweetsList(this, data_model)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
-     m_nextPage(new QPushButton(this)), m_previousPage(new QPushButton(this)), m_selectedUser(tweeteria::UserId(0))
+     m_nextPage(new QPushButton(this)), m_selectedUser(tweeteria::UserId(0))
 {
     m_usersList->setMinimumWidth(600);
     m_centralLayout.addWidget(m_usersList);
@@ -50,9 +50,8 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_mo
     m_rightPaneLayout.addWidget(m_tweetsList);
 
     m_rightPaneLayout.addLayout(&m_buttonsLayout);
-    m_previousPage->setText("<<");
-    m_buttonsLayout.addWidget(m_previousPage);
-    m_nextPage->setText(">>");
+    m_nextPage->setText("...");
+    m_nextPage->setEnabled(false);
     m_buttonsLayout.addWidget(m_nextPage);
     setLayout(&m_centralLayout);
 
@@ -104,27 +103,32 @@ void CentralWidget::onUserInfoUpdate(tweeteria::UserId updated_user_id, bool is_
 void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
 {
     if(updated_user_id != m_selectedUser) { return; }
-    m_tweetsList->clearAllTweets();
 
-    m_tweets = m_dataModel->getUserTimeline(updated_user_id);
+    auto updated_timeline = m_dataModel->getUserTimeline(updated_user_id);
+    std::size_t start_index;
+    if((!m_tweets.empty()) && (updated_timeline.front().id != m_tweets.front().id)) {
+        m_tweetsList->clearAllTweets();
+        start_index = 0;
+        m_tweets = updated_timeline;
+    } else {
+        start_index = m_tweets.size();
+        m_tweets.insert(m_tweets.end(), begin(updated_timeline) + m_tweets.size(), end(updated_timeline));
+    }
 
     // populate widgets
     std::vector<TweetWidget*> tweet_widgets;
     std::vector<QListWidgetItem*> tweet_list_items;
-    for(std::size_t i=0; i<m_tweets.size(); ++i)
+    for(std::size_t i=start_index; i<m_tweets.size(); ++i)
     {
         tweeteria::Tweet const tweet = *m_dataModel->getTweet(m_tweets[i]);
         auto tweet_widget = m_tweetsList->addTweetWidget(tweet);
 
-        auto displayed_author = m_dataModel->getUser(tweet_widget->getDisplayedAuthorId());
-        if(!displayed_author) {
-            GHULBUS_LOG(Warning, "@todo Missing author info for " << tweet_widget->getDisplayedAuthorId().id);
-        } else {
-            auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(displayed_author->profile_image_url_https).normal;
+        m_dataModel->awaitUserInfo(tweet_widget->getDisplayedAuthorId(), [this, tweet_widget](tweeteria::User const& displayed_author) {
+            auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(displayed_author.profile_image_url_https).normal;
             m_imageProvider->retrieve(img_url, [tweet_widget](QPixmap pic) {
                 emit tweet_widget->imageArrived(pic);
             });
-        }
+        });
 
         if(!tweet.entities.media.empty()) {
             if(tweet.entities.media.size() > 1) {
@@ -141,6 +145,8 @@ void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
         }
         connect(tweet_widget, &TweetWidget::markedAsRead, this, &CentralWidget::markTweetAsRead);
     }
+
+    m_nextPage->setEnabled(true);
 }
 
 void CentralWidget::markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id)

@@ -26,6 +26,7 @@
 
 #include <boost/optional.hpp>
 
+#include <functional>
 #include <mutex>
 #include <unordered_map>
 
@@ -43,6 +44,8 @@ class ClientDatabase;
 class DataModel : public QObject
 {
     Q_OBJECT
+public:
+    typedef std::function<void(tweeteria::User const& user)> UserInfoCallback;
 private:
     mutable std::mutex m_mtx;
     std::unordered_map<tweeteria::UserId, tweeteria::User> m_users;
@@ -50,6 +53,9 @@ private:
     std::unordered_map<tweeteria::TweetId, tweeteria::Tweet> m_tweets;
 
     tweeteria::UserId const m_owner;
+
+    std::unordered_map<tweeteria::UserId, std::vector<UserInfoCallback>> m_userInfoCallbacks;
+
 public:
     DataModel(QObject* parent, tweeteria::User const& owner);
 
@@ -66,6 +72,8 @@ public:
     boost::optional<tweeteria::User> getUser(tweeteria::UserId user_id) const;
     std::vector<tweeteria::TweetId> getUserTimeline(tweeteria::UserId user_id) const;
     boost::optional<tweeteria::Tweet> getTweet(tweeteria::TweetId tweet_id) const;
+
+    void awaitUserInfo(tweeteria::UserId user_to_wait_for, UserInfoCallback const& cb);
 
 signals:
 

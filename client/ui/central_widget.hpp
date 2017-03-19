@@ -60,7 +60,6 @@ private:
 
     QBoxLayout m_buttonsLayout;
     QPushButton* m_nextPage;
-    QPushButton* m_previousPage;
 
     std::vector<tweeteria::UserId> m_usersInList;
     std::vector<tweeteria::TweetId> m_tweets;

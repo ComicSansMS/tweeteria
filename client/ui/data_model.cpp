@@ -28,8 +28,19 @@ DataModel::DataModel(QObject* parent, tweeteria::User const& owner)
 
 void DataModel::updateUser(tweeteria::User const& user)
 {
-    std::lock_guard<std::mutex> lk(m_mtx);
-    m_users[user.id] = user;
+    std::vector<UserInfoCallback> outstanding_cbs;
+    {
+        std::lock_guard<std::mutex> lk(m_mtx);
+        m_users[user.id] = user;
+        auto awaiters = m_userInfoCallbacks.find(user.id);
+        if(awaiters != end(m_userInfoCallbacks)) {
+            outstanding_cbs = std::move(awaiters->second);
+            m_userInfoCallbacks.erase(awaiters);
+        }
+    }
+    for(auto const& cb : outstanding_cbs) {
+        cb(user);
+    }
 }
 
 void DataModel::updateTweet(tweeteria::Tweet const& tweet)
@@ -134,4 +145,18 @@ boost::optional<tweeteria::Tweet> DataModel::getTweet(tweeteria::TweetId tweet_i
         return boost::none;
     }
     return it->second;
+}
+
+void DataModel::awaitUserInfo(tweeteria::UserId user_to_wait_for, UserInfoCallback const& cb)
+{
+    std::unique_lock<std::mutex> lk(m_mtx);
+    auto user_it = m_users.find(user_to_wait_for);
+    if(user_it != end(m_users)) {
+        // user info already arrived;
+        tweeteria::User const user = user_it->second;
+        lk.unlock();
+        cb(user);
+        return;
+    }
+    m_userInfoCallbacks[user_to_wait_for].emplace_back(cb);
 }
