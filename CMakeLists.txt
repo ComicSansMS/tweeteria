@@ -51,6 +51,8 @@ set(CLIENT_HEADER_FILES
     ${CLIENT_SOURCE_DIR}/exceptions.hpp
     ${CLIENT_SOURCE_DIR}/image_provider.hpp
     ${CLIENT_SOURCE_DIR}/metatype_declarations.hpp
+    ${CLIENT_SOURCE_DIR}/qt_begin_disable_warnings.hpp
+    ${CLIENT_SOURCE_DIR}/qt_end_disable_warnings.hpp
     ${CLIENT_SOURCE_DIR}/version.hpp
     ${CLIENT_SOURCE_DIR}/web_resource_provider.hpp
     ${CLIENT_SOURCE_DIR}/db/client_database.hpp
@@ -62,6 +64,7 @@ set(CLIENT_UI_DIR ${CLIENT_SOURCE_DIR}/ui)
 set(CLIENT_QT_SOURCE_FILES
     ${CLIENT_UI_DIR}/main_window.cpp
     ${CLIENT_UI_DIR}/central_widget.cpp
+    ${CLIENT_UI_DIR}/data_model.cpp
     ${CLIENT_UI_DIR}/tweet_widget.cpp
     ${CLIENT_UI_DIR}/tweets_list.cpp
     ${CLIENT_UI_DIR}/user_widget.cpp
@@ -69,6 +72,7 @@ set(CLIENT_QT_SOURCE_FILES
 set(CLIENT_QT_MOC_HEADER_FILES
     ${CLIENT_UI_DIR}/main_window.hpp
     ${CLIENT_UI_DIR}/central_widget.hpp
+    ${CLIENT_UI_DIR}/data_model.hpp
     ${CLIENT_UI_DIR}/tweet_widget.hpp
     ${CLIENT_UI_DIR}/tweets_list.hpp
     ${CLIENT_UI_DIR}/user_widget.hpp
@@ -89,6 +93,7 @@ add_executable(tweeteria_client WIN32
 )
 target_include_directories(tweeteria_client PUBLIC ${CLIENT_SOURCE_DIR})
 target_link_libraries(tweeteria_client PUBLIC tweeteria Qt5::Widgets Qt5::WinMain Ghulbus::gbBase sqlpp11-connector-sqlite3)
+target_compile_options(tweeteria_client PRIVATE $<$<STREQUAL:$<CXX_COMPILER_ID>,MSVC>:/W4>)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tweeteria_test)
 

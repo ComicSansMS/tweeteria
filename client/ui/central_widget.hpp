@@ -36,6 +36,7 @@ namespace tweeteria {
 class Tweeteria;
 }
 
+class DataModel;
 class WebResourceProvider;
 class ImageProvider;
 class TweetsList;
@@ -45,7 +46,7 @@ class CentralWidget : public QWidget
     Q_OBJECT
 private:
     tweeteria::Tweeteria* m_tweeteria;
-    tweeteria::UserId m_owner;
+    DataModel* m_dataModel;
     std::unique_ptr<WebResourceProvider> m_webResourceProvider;
     std::unique_ptr<ImageProvider> m_imageProvider;
 
@@ -61,30 +62,24 @@ private:
     QPushButton* m_nextPage;
     QPushButton* m_previousPage;
 
-    std::vector<tweeteria::User> m_users;
+    std::vector<tweeteria::UserId> m_usersInList;
     std::vector<tweeteria::Tweet> m_tweets;
     std::mutex m_mtx;
 
-    std::unordered_map<tweeteria::UserId, tweeteria::User> m_userDb;
-    std::unordered_map<tweeteria::UserId, std::vector<tweeteria::Tweet>> m_userTimelines;
-
-    tweeteria::User const* m_selectedUser;
+    tweeteria::UserId m_selectedUser;
 public:
-    CentralWidget(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user, QWidget* parent);
+    CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_model, QWidget* parent);
     ~CentralWidget();
 
-    tweeteria::User const& getOwner() const;
-
 signals:
-    void tweetsChanged();
     void tweetMarkedAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
+    void userSelectionChanged(tweeteria::UserId selected_user);
 
 public slots:
     void userSelected(QModelIndex const& user_item);
-    void onUserInfoUpdate(tweeteria::User const& updated_user);
-    void populateTweets();
+    void onUserInfoUpdate(tweeteria::UserId updated_user_id, bool is_friend);
+    void onUserTimelineUpdate(tweeteria::UserId updated_user_id);
     void nextPage();
-    void onUserTimelineUpdate(tweeteria::UserId user_id, QVector<tweeteria::Tweet> const& tweets);
 private slots:
     void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
 };

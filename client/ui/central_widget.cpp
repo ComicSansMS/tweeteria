@@ -17,6 +17,7 @@
  */
 #include <ui/central_widget.hpp>
 
+#include <ui/data_model.hpp>
 #include <ui/user_widget.hpp>
 #include <ui/tweet_widget.hpp>
 #include <ui/tweets_list.hpp>
@@ -30,16 +31,14 @@
 #include <gbBase/Assert.hpp>
 #include <gbBase/Log.hpp>
 
-CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user, QWidget* parent)
-    :QWidget(parent), m_tweeteria(&tweeteria), m_owner(user.id),
+CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_model, QWidget* parent)
+    :QWidget(parent), m_tweeteria(&tweeteria), m_dataModel(&data_model),
      m_webResourceProvider(new WebResourceProvider()), m_imageProvider(new ImageProvider(*m_webResourceProvider)),
      m_centralLayout(QBoxLayout::Direction::LeftToRight),
      m_usersList(new QListWidget(this)), m_rightPaneLayout(QBoxLayout::Direction::TopToBottom),
      m_tweetsList(new TweetsList(this)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
-     m_nextPage(new QPushButton(this)), m_previousPage(new QPushButton(this)), m_selectedUser(nullptr)
+     m_nextPage(new QPushButton(this)), m_previousPage(new QPushButton(this)), m_selectedUser(tweeteria::UserId(0))
 {
-    m_userDb[user.id] = user;
-
     m_usersList->setMinimumWidth(600);
     m_centralLayout.addWidget(m_usersList);
     m_usersList->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
@@ -58,8 +57,6 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, tweeteria::User co
     setLayout(&m_centralLayout);
 
     connect(m_usersList, &QListWidget::clicked, this, &CentralWidget::userSelected);
-    connect(this, &CentralWidget::tweetsChanged, this, &CentralWidget::populateTweets, Qt::ConnectionType::QueuedConnection);
-
     connect(m_nextPage, &QPushButton::clicked, this, &CentralWidget::nextPage);
 }
 
@@ -68,24 +65,11 @@ CentralWidget::~CentralWidget()
     // needed for unique_ptrs to forward declared providers
 }
 
-tweeteria::User const& CentralWidget::getOwner() const
-{
-    auto it = m_userDb.find(m_owner);
-    GHULBUS_ASSERT_PRD_MESSAGE(it != end(m_userDb), "Seems we lost our owner.");
-    return it->second;
-}
-
 void CentralWidget::userSelected(QModelIndex const& user_item)
 {
-    auto const& user = m_users[user_item.row()];
-    m_selectedUser = &user;
-    m_tweeteria->getUserTimeline(user.id).then([this](std::vector<tweeteria::Tweet> tweets) {
-        {
-            std::lock_guard<std::mutex> lk(m_mtx);
-            m_tweets.swap(tweets);
-        }
-        emit tweetsChanged();
-    });
+    auto const& user = m_usersInList[user_item.row()];
+    m_selectedUser = user;
+    emit userSelectionChanged(m_selectedUser);
 }
 
 void CentralWidget::nextPage()
@@ -97,70 +81,44 @@ void CentralWidget::nextPage()
             current_max_id = m_tweets.back().id;
         }
     }
-    if(m_selectedUser) {
-        m_tweeteria->getUserTimeline(m_selectedUser->id, current_max_id).then([this](std::vector<tweeteria::Tweet> tweets) {
+    if(m_selectedUser != tweeteria::UserId(0)) {
+        m_tweeteria->getUserTimeline(m_selectedUser, current_max_id).then([this](std::vector<tweeteria::Tweet> tweets) {
             {
                 std::lock_guard<std::mutex> lk(m_mtx);
                 m_tweets.swap(tweets);
             }
-            emit tweetsChanged();
+            //emit tweetsChanged();
         });
     }
 }
 
-void CentralWidget::onUserInfoUpdate(tweeteria::User const& updated_user)
+void CentralWidget::onUserInfoUpdate(tweeteria::UserId updated_user_id, bool is_friend)
 {
-    auto it = std::find_if(begin(m_users), end(m_users), [&updated_user](tweeteria::User const& u) { return u.id == updated_user.id; });
-    if(it != end(m_users)) {
-        *it = updated_user;
-    } else {
-        it = m_users.insert(end(m_users), updated_user);
+    auto const updated_user = *m_dataModel->getUser(updated_user_id);
+
+    if(is_friend) {
+        auto user_widget = new UserWidget(updated_user, this);
+        auto list_item = new QListWidgetItem(m_usersList);
+        list_item->setSizeHint(user_widget->minimumSizeHint());
+        m_usersList->setItemWidget(list_item, user_widget);
+        m_usersInList.push_back(updated_user.id);
+
+        auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(updated_user.profile_image_url_https).bigger;
+
+        m_imageProvider->retrieve(img_url, [user_widget](QPixmap pic) {
+            emit user_widget->imageArrived(pic);
+        });
     }
-
-    auto user_widget = new UserWidget(updated_user, this);
-    auto list_item = new QListWidgetItem(m_usersList);
-    list_item->setSizeHint(user_widget->minimumSizeHint());
-    m_usersList->setItemWidget(list_item, user_widget);
-    m_userDb[updated_user.id] = updated_user;
-
-    auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(updated_user.profile_image_url_https).bigger;
-
-    m_imageProvider->retrieve(img_url, [user_widget](QPixmap pic) {
-        emit user_widget->imageArrived(pic);
-    });
-}
-
-void CentralWidget::onUserTimelineUpdate(tweeteria::UserId user_id, QVector<tweeteria::Tweet> const& tweets)
-{
 
 }
 
-void CentralWidget::populateTweets()
+void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
 {
-    std::lock_guard<std::mutex> lk(m_mtx);
-
-    // populate user db
-    std::vector<tweeteria::UserId> missing_authors;
-    for(auto const& t : m_tweets) {
-        if(m_userDb.find(t.user_id) == end(m_userDb)) {
-            missing_authors.push_back(t.user_id);
-        }
-        if((t.in_reply_to_user_id != tweeteria::UserId(0)) && (m_userDb.find(t.in_reply_to_user_id) == end(m_userDb))) {
-            missing_authors.push_back(t.in_reply_to_user_id);
-        }
-        if((t.retweeted_status) && (m_userDb.find(t.retweeted_status->user_id) == end(m_userDb))) {
-            missing_authors.push_back(t.retweeted_status->user_id);
-        }
-        if((t.retweeted_status) && (t.retweeted_status->in_reply_to_user_id != tweeteria::UserId(0)) && (m_userDb.find(t.retweeted_status->in_reply_to_user_id) == end(m_userDb))) {
-            missing_authors.push_back(t.retweeted_status->in_reply_to_user_id);
-        }
-    }
-    std::vector<tweeteria::User> new_authors = m_tweeteria->getUsers(missing_authors).get();
-    for(auto const& u : new_authors) {
-        m_userDb[u.id] = u;
-    }
-
+    if(updated_user_id != m_selectedUser) { return; }
     m_tweetsList->clearAllTweets();
+
+    m_tweets = m_dataModel->getUserTimeline(updated_user_id);
+
     // populate widgets
     std::vector<TweetWidget*> tweet_widgets;
     std::vector<QListWidgetItem*> tweet_list_items;
@@ -168,14 +126,25 @@ void CentralWidget::populateTweets()
     {
         tweeteria::Tweet const& tweet = m_tweets[i];
         tweeteria::Tweet const& displayed_tweet = (tweet.retweeted_status) ? (*tweet.retweeted_status) : tweet;
-        tweeteria::User const& author = m_userDb[tweet.user_id];
-        tweeteria::User const& displayed_author = m_userDb[displayed_tweet.user_id];
+        tweeteria::User const author = *m_dataModel->getUser(tweet.user_id);
+        auto const opt_displayed_author = m_dataModel->getUser(displayed_tweet.user_id);
+        tweeteria::User displayed_author;
+        if(opt_displayed_author) {
+            displayed_author = *opt_displayed_author;
+        } else {
+            displayed_author.id = tweeteria::UserId(1);
+            displayed_author.name = "Unknown Author";
+            displayed_author.screen_name = "unknown";
+        }
         auto tweet_widget = m_tweetsList->addTweetWidget(tweet, author, displayed_author);
+        
 
-        auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(displayed_author.profile_image_url_https).normal;
-        m_imageProvider->retrieve(img_url, [tweet_widget](QPixmap pic) {
-            emit tweet_widget->imageArrived(pic);
-        });
+        if(!displayed_author.profile_image_url_https.empty()) {
+            auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(displayed_author.profile_image_url_https).normal;
+            m_imageProvider->retrieve(img_url, [tweet_widget](QPixmap pic) {
+                emit tweet_widget->imageArrived(pic);
+            });
+        }
 
         if(!tweet.entities.media.empty()) {
             if(tweet.entities.media.size() > 1) {
