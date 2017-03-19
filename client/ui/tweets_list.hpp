@@ -31,6 +31,9 @@ struct Tweet;
 struct User;
 }
 
+class ImageProvider;
+class DataModel;
+
 class TweetsList : public QScrollArea
 {
     Q_OBJECT
@@ -39,11 +42,14 @@ private:
     QBoxLayout m_outerLayout;
     QBoxLayout m_layout;
     std::vector<TweetWidget*> m_elements;
+
+    DataModel* m_dataModel;
+    ImageProvider* m_imageProvider;
 public:
-    TweetsList(QWidget* parent);
+    TweetsList(QWidget* parent, DataModel& data_model);
 
     void clearAllTweets();
-    TweetWidget* addTweetWidget(tweeteria::Tweet const& tweet, tweeteria::User const& author, tweeteria::User const& displayed_author);
+    TweetWidget* addTweetWidget(tweeteria::Tweet const& tweet);
 };
 
 #endif

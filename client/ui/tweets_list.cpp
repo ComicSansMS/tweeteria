@@ -27,8 +27,9 @@
 
 #include <algorithm>
 
-TweetsList::TweetsList(QWidget* parent)
-    :QScrollArea(parent), m_list(new QWidget(this)), m_outerLayout(QBoxLayout::LeftToRight), m_layout(QBoxLayout::TopToBottom)
+TweetsList::TweetsList(QWidget* parent, DataModel& data_model)
+    :QScrollArea(parent), m_list(new QWidget(this)), m_outerLayout(QBoxLayout::LeftToRight), m_layout(QBoxLayout::TopToBottom),
+     m_dataModel(&data_model)
 {
     m_outerLayout.addStretch();
     m_outerLayout.addLayout(&m_layout);
@@ -55,9 +56,9 @@ void TweetsList::clearAllTweets()
     }
 }
 
-TweetWidget* TweetsList::addTweetWidget(tweeteria::Tweet const& tweet, tweeteria::User const& author, tweeteria::User const& displayed_author)
+TweetWidget* TweetsList::addTweetWidget(tweeteria::Tweet const& tweet)
 {
-    auto tweet_widget = new TweetWidget(tweet, author, displayed_author, m_list);
+    auto tweet_widget = new TweetWidget(tweet, *m_dataModel, m_list);
     if(!m_elements.empty()) { m_layout.addSpacing(10); }
     m_layout.addWidget(tweet_widget);
     m_elements.push_back(tweet_widget);

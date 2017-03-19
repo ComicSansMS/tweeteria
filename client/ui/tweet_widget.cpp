@@ -17,6 +17,7 @@
  */
 #include <ui/tweet_widget.hpp>
 
+#include <ui/data_model.hpp>
 #include <ui/tweets_list.hpp>
 
 #include <QApplication>
@@ -27,13 +28,12 @@
 #include <gbBase/Assert.hpp>
 #include <gbBase/Log.hpp>
 
-TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, tweeteria::User const& displayed_author, QWidget* parent)
-    :QWidget(parent), m_tweet(t), m_author(author), m_displayedAuthor(displayed_author),
+TweetWidget::TweetWidget(tweeteria::Tweet const& t, DataModel& data_model, QWidget* parent)
+    :QWidget(parent), m_tweet(t), m_author(*data_model.getUser(t.user_id)), m_dataModel(&data_model),
      m_avatar(new QLabel(this)), m_name(new QLabel(this)), m_twitterName(new QLabel(this)),
      m_menuButton(new QPushButton(this)), m_header(new QLabel(this)), m_text(new QLabel(this)), m_media(new QLabel(this)),
      m_date(new QLabel(this)), m_menu(new Menu(this))
 {
-    GHULBUS_PRECONDITION_MESSAGE(t.user_id == author.id, "Author user must match tweet user.");
     m_layout.addLayout(&m_topRowLayout);
 
     {
@@ -49,12 +49,14 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
 
     m_topRowLayout.addLayout(&m_nameLayout);
 
+    tweeteria::Tweet const& displayed_tweet = getDisplayedTweet();
+    auto displayed_author = m_dataModel->getUser(getDisplayedAuthorId());
     m_nameLayout.addStretch();
     m_name->setFont(QFont("Arial", 18, QFont::Bold));
-    m_name->setText(QString::fromStdString(m_displayedAuthor.name));
+    m_name->setText(displayed_author ? QString::fromStdString(displayed_author->name) : "???");
     m_nameLayout.addWidget(m_name);
 
-    m_twitterName->setText(QString("@") + QString::fromStdString(m_displayedAuthor.screen_name));
+    m_twitterName->setText(QString("@") + (displayed_author ? QString::fromStdString(displayed_author->screen_name) : "???"));
     m_twitterName->setFont(QFont("Arial", 12));
     m_twitterName->setStyleSheet("QLabel { color: grey; }");
     m_nameLayout.addWidget(m_twitterName);
@@ -64,11 +66,10 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& autho
     m_topRowLayout.addStretch();
     m_topRowLayout.addWidget(m_menuButton);
 
-    auto const& displayed_tweet = (m_tweet.retweeted_status) ? (*m_tweet.retweeted_status) : m_tweet;
     if(m_tweet.retweeted_status) {
         m_header->setFont(QFont("Arial", 10));
         m_header->setStyleSheet("QLabel { color: grey; }");
-        m_header->setText(QString::fromStdString(m_author.name + " Retweeted"));
+        m_header->setText(QString::fromStdString(m_author.name) + " retweeted");
         m_layout.addWidget(m_header);
     }
 
@@ -119,6 +120,16 @@ TweetWidget::Menu::Menu(TweetWidget* parent)
     connect(openInBrowser, &QAction::triggered, parent, &TweetWidget::openInBrowser);
 }
 
+tweeteria::Tweet const& TweetWidget::getDisplayedTweet() const
+{
+    return (m_tweet.retweeted_status) ? (*m_tweet.retweeted_status) : m_tweet;
+}
+
+tweeteria::UserId TweetWidget::getDisplayedAuthorId() const
+{
+    return getDisplayedTweet().user_id;
+}
+
 void TweetWidget::onImageArrived(QPixmap p)
 {
     m_avatar->setPixmap(p);
@@ -142,7 +153,7 @@ void TweetWidget::openMenu()
 void TweetWidget::markAsRead()
 {
     GHULBUS_LOG(Trace, "markAsRead - " << m_tweet.id.id << " for author " << m_author.screen_name);
-    emit markedAsRead(m_tweet.id, m_author.id);
+    emit markedAsRead(m_tweet.id, m_tweet.user_id);
 }
 
 void TweetWidget::copyUrl()

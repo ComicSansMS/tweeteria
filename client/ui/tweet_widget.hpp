@@ -28,6 +28,7 @@
 #include <QPushButton>
 #include <QWidget>
 
+class DataModel;
 
 class TweetWidget : public QWidget
 {
@@ -35,7 +36,7 @@ class TweetWidget : public QWidget
 private:
     tweeteria::Tweet m_tweet;
     tweeteria::User m_author;
-    tweeteria::User m_displayedAuthor;
+    DataModel* m_dataModel;
     QVBoxLayout m_layout;
     QHBoxLayout m_topRowLayout;
     QLabel* m_avatar;
@@ -60,8 +61,10 @@ private:
     };
     Menu* m_menu;
 public:
-    TweetWidget(tweeteria::Tweet const& t, tweeteria::User const& author, tweeteria::User const& displayed_author, QWidget* parent=nullptr);
+    TweetWidget(tweeteria::Tweet const& t, DataModel& data_model, QWidget* parent=nullptr);
 
+    tweeteria::Tweet const& getDisplayedTweet() const;
+    tweeteria::UserId getDisplayedAuthorId() const;
 signals:
     void imageArrived(QPixmap p);
     void mediaArrived(QPixmap p);

@@ -36,7 +36,7 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_mo
      m_webResourceProvider(new WebResourceProvider()), m_imageProvider(new ImageProvider(*m_webResourceProvider)),
      m_centralLayout(QBoxLayout::Direction::LeftToRight),
      m_usersList(new QListWidget(this)), m_rightPaneLayout(QBoxLayout::Direction::TopToBottom),
-     m_tweetsList(new TweetsList(this)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
+     m_tweetsList(new TweetsList(this, data_model)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
      m_nextPage(new QPushButton(this)), m_previousPage(new QPushButton(this)), m_selectedUser(tweeteria::UserId(0))
 {
     m_usersList->setMinimumWidth(600);
@@ -114,22 +114,13 @@ void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
     for(std::size_t i=0; i<m_tweets.size(); ++i)
     {
         tweeteria::Tweet const tweet = *m_dataModel->getTweet(m_tweets[i]);
-        tweeteria::Tweet const& displayed_tweet = (tweet.retweeted_status) ? (*tweet.retweeted_status) : tweet;
-        tweeteria::User const author = *m_dataModel->getUser(tweet.user_id);
-        auto const opt_displayed_author = m_dataModel->getUser(displayed_tweet.user_id);
-        tweeteria::User displayed_author;
-        if(opt_displayed_author) {
-            displayed_author = *opt_displayed_author;
-        } else {
-            displayed_author.id = tweeteria::UserId(1);
-            displayed_author.name = "Unknown Author";
-            displayed_author.screen_name = "unknown";
-        }
-        auto tweet_widget = m_tweetsList->addTweetWidget(tweet, author, displayed_author);
-        
+        auto tweet_widget = m_tweetsList->addTweetWidget(tweet);
 
-        if(!displayed_author.profile_image_url_https.empty()) {
-            auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(displayed_author.profile_image_url_https).normal;
+        auto displayed_author = m_dataModel->getUser(tweet_widget->getDisplayedAuthorId());
+        if(!displayed_author) {
+            GHULBUS_LOG(Warning, "@todo Missing author info for " << tweet_widget->getDisplayedAuthorId().id);
+        } else {
+            auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(displayed_author->profile_image_url_https).normal;
             m_imageProvider->retrieve(img_url, [tweet_widget](QPixmap pic) {
                 emit tweet_widget->imageArrived(pic);
             });
