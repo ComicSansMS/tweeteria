@@ -57,7 +57,7 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_mo
     setLayout(&m_centralLayout);
 
     connect(m_usersList, &QListWidget::clicked, this, &CentralWidget::userSelected);
-    connect(m_nextPage, &QPushButton::clicked, this, &CentralWidget::nextPage);
+    connect(m_nextPage, &QPushButton::clicked, this, &CentralWidget::onNextPageClicked);
 }
 
 CentralWidget::~CentralWidget()
@@ -72,23 +72,12 @@ void CentralWidget::userSelected(QModelIndex const& user_item)
     emit userSelectionChanged(m_selectedUser);
 }
 
-void CentralWidget::nextPage()
+void CentralWidget::onNextPageClicked()
 {
-    tweeteria::TweetId current_max_id(0);
-    {
-        std::lock_guard<std::mutex> lk(m_mtx);
-        if(!m_tweets.empty()) {
-            current_max_id = m_tweets.back().id;
-        }
-    }
+    tweeteria::TweetId current_max_id = (!m_tweets.empty()) ? m_tweets.back() : tweeteria::TweetId(0);
+
     if(m_selectedUser != tweeteria::UserId(0)) {
-        m_tweeteria->getUserTimeline(m_selectedUser, current_max_id).then([this](std::vector<tweeteria::Tweet> tweets) {
-            {
-                std::lock_guard<std::mutex> lk(m_mtx);
-                m_tweets.swap(tweets);
-            }
-            //emit tweetsChanged();
-        });
+        emit additionalTimelineTweetsRequest(m_selectedUser, current_max_id);
     }
 }
 
@@ -124,7 +113,7 @@ void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
     std::vector<QListWidgetItem*> tweet_list_items;
     for(std::size_t i=0; i<m_tweets.size(); ++i)
     {
-        tweeteria::Tweet const& tweet = m_tweets[i];
+        tweeteria::Tweet const tweet = *m_dataModel->getTweet(m_tweets[i]);
         tweeteria::Tweet const& displayed_tweet = (tweet.retweeted_status) ? (*tweet.retweeted_status) : tweet;
         tweeteria::User const author = *m_dataModel->getUser(tweet.user_id);
         auto const opt_displayed_author = m_dataModel->getUser(displayed_tweet.user_id);

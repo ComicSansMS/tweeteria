@@ -38,7 +38,7 @@ void DataModel::updateTweet(tweeteria::Tweet const& tweet)
     m_tweets[tweet.id] = tweet;
 }
 
-std::vector<tweeteria::UserId> DataModel::updateUserTimeline(tweeteria::UserId user_id, std::vector<tweeteria::Tweet> const& tweets)
+std::vector<tweeteria::UserId> DataModel::updateUserTimeline(tweeteria::UserId user_id, std::vector<tweeteria::Tweet> const& new_tweets)
 {
     std::vector<tweeteria::UserId> missing_authors;
     std::lock_guard<std::mutex> lk(m_mtx);
@@ -50,9 +50,15 @@ std::vector<tweeteria::UserId> DataModel::updateUserTimeline(tweeteria::UserId u
         it_timeline = res.first;
     }
 
-    for(auto const& t : tweets) {
+    // merge timelines
+    std::vector<tweeteria::TweetId>& existing = it_timeline->second;
+    auto it_existing = begin(existing);
+    auto it_new = begin(new_tweets);
+
+    auto insert_tweet = [this, &it_existing, &existing, &missing_authors](tweeteria::Tweet const& t) {
+        it_existing = existing.insert(it_existing, t.id);
+        ++it_existing;
         m_tweets[t.id] = t;
-        it_timeline->second.push_back(t.id);
         if(m_users.find(t.user_id) == end(m_users)) {
             missing_authors.push_back(t.user_id);
         }
@@ -63,11 +69,33 @@ std::vector<tweeteria::UserId> DataModel::updateUserTimeline(tweeteria::UserId u
             missing_authors.push_back(t.retweeted_status->user_id);
         }
         if((t.retweeted_status) &&
-           (t.retweeted_status->in_reply_to_user_id != tweeteria::UserId(0)) &&
-           (m_users.find(t.retweeted_status->in_reply_to_user_id) == end(m_users))) {
+            (t.retweeted_status->in_reply_to_user_id != tweeteria::UserId(0)) &&
+            (m_users.find(t.retweeted_status->in_reply_to_user_id) == end(m_users))) {
             missing_authors.push_back(t.retweeted_status->in_reply_to_user_id);
         }
+    };
+
+    for(;;)
+    {
+        if(it_new == end(new_tweets)) { break; }
+        if(it_existing == end(existing)) {
+            existing.reserve(existing.size() + (end(new_tweets) - it_new));
+            it_existing = end(existing);    // iterators invalidated by reserve
+            for(; it_new != end(new_tweets); ++it_new) {
+                insert_tweet(*it_new);
+            }
+            break;
+        }
+        if(it_new->id >= *it_existing) {
+            if(it_new->id != *it_existing) {
+                insert_tweet(*it_new);
+            }
+            ++it_new;
+        } else {
+            ++it_existing;
+        }
     }
+
     return missing_authors;
 }
 
@@ -82,20 +110,28 @@ boost::optional<tweeteria::User> DataModel::getUser(tweeteria::UserId user_id) c
 {
     std::lock_guard<std::mutex> lk(m_mtx);
     auto it = m_users.find(user_id);
+    if(it == end(m_users)) {
+        return boost::none;
+    }
     return it->second;
 }
 
-std::vector<tweeteria::Tweet> DataModel::getUserTimeline(tweeteria::UserId user_id) const
+std::vector<tweeteria::TweetId> DataModel::getUserTimeline(tweeteria::UserId user_id) const
 {
-    std::vector<tweeteria::Tweet> ret;
+    std::vector<tweeteria::TweetId> ret;
     auto it = m_userTimelines.find(user_id);
     if(it != end(m_userTimelines)) {
-        auto const& tweet_ids = it->second;
-        ret.reserve(tweet_ids.size());
-        for(auto const& t_id : tweet_ids)
-        {
-            ret.emplace_back(m_tweets.find(t_id)->second);
-        }
+        ret = it->second;
     }
     return ret;
+}
+
+boost::optional<tweeteria::Tweet> DataModel::getTweet(tweeteria::TweetId tweet_id) const
+{
+    std::lock_guard<std::mutex> lk(m_mtx);
+    auto it = m_tweets.find(tweet_id);
+    if(it == end(m_tweets)) {
+        return boost::none;
+    }
+    return it->second;
 }

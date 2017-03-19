@@ -49,6 +49,7 @@ MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& u
     connect(this, &MainWindow::userInfoUpdate, m_centralWidget, &CentralWidget::onUserInfoUpdate, Qt::QueuedConnection);
     connect(this, &MainWindow::userTimelineUpdate, m_centralWidget, &CentralWidget::onUserTimelineUpdate, Qt::QueuedConnection);
     connect(m_centralWidget, &CentralWidget::userSelectionChanged, this, &MainWindow::onUserSelectionChange);
+    connect(m_centralWidget, &CentralWidget::additionalTimelineTweetsRequest, this, &MainWindow::onAdditionalTimelineTweetsRequest);
 }
 
 MainWindow::~MainWindow()
@@ -91,12 +92,7 @@ void MainWindow::getUserDetails_impl(std::vector<tweeteria::User> const& new_use
     for(auto const& u : new_users) {
         if(is_friend) {
             m_tweeteria->getUserTimeline(u.id).then([this, u_id = u.id](std::vector<tweeteria::Tweet> const& tweets) {
-                GHULBUS_LOG(Trace, tweets.size() << " new tweets for user " << u_id.id << ".");
-                auto const missing_authors = m_dataModel->updateUserTimeline(u_id, tweets);
-                emit userTimelineUpdate(u_id);
-                m_tweeteria->getUsers(missing_authors).then([this](std::vector<tweeteria::User> const& missing_author_details) {
-                    getUserDetails_impl(missing_author_details, false);
-                });
+                getUserTimeline_impl(u_id, tweets);
             });
         }
         GHULBUS_LOG(Trace, "Update info for user " << u.id.id);
@@ -120,4 +116,21 @@ void MainWindow::onUserSelectionChange(tweeteria::UserId selected_user_id)
     auto const selected_user = m_dataModel->getUser(selected_user_id);
     GHULBUS_LOG(Trace, "User @" << selected_user->screen_name << " selected in UI.");
     emit userTimelineUpdate(selected_user_id);
+}
+
+void MainWindow::onAdditionalTimelineTweetsRequest(tweeteria::UserId user, tweeteria::TweetId max_id)
+{
+    m_tweeteria->getUserTimeline(user, max_id).then([this, u_id = user](std::vector<tweeteria::Tweet> const& tweets) {
+        getUserTimeline_impl(u_id, tweets);
+    });
+}
+
+void MainWindow::getUserTimeline_impl(tweeteria::UserId user, std::vector<tweeteria::Tweet> const& tweets)
+{
+    GHULBUS_LOG(Trace, tweets.size() << " new tweets for user " << user.id << ".");
+    auto const missing_authors = m_dataModel->updateUserTimeline(user, tweets);
+    emit userTimelineUpdate(user);
+    m_tweeteria->getUsers(missing_authors).then([this](std::vector<tweeteria::User> const& missing_author_details) {
+        getUserDetails_impl(missing_author_details, false);
+    });
 }

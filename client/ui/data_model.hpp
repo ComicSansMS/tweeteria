@@ -60,11 +60,12 @@ public:
 
     void updateTweet(tweeteria::Tweet const& tweet);
 
-    std::vector<tweeteria::UserId> updateUserTimeline(tweeteria::UserId user_id, std::vector<tweeteria::Tweet> const& tweets);
+    std::vector<tweeteria::UserId> updateUserTimeline(tweeteria::UserId user_id, std::vector<tweeteria::Tweet> const& new_tweets);
 
     tweeteria::User getOwner() const;
     boost::optional<tweeteria::User> getUser(tweeteria::UserId user_id) const;
-    std::vector<tweeteria::Tweet> getUserTimeline(tweeteria::UserId user_id) const;
+    std::vector<tweeteria::TweetId> getUserTimeline(tweeteria::UserId user_id) const;
+    boost::optional<tweeteria::Tweet> getTweet(tweeteria::TweetId tweet_id) const;
 
 signals:
 

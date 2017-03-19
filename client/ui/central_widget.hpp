@@ -63,8 +63,7 @@ private:
     QPushButton* m_previousPage;
 
     std::vector<tweeteria::UserId> m_usersInList;
-    std::vector<tweeteria::Tweet> m_tweets;
-    std::mutex m_mtx;
+    std::vector<tweeteria::TweetId> m_tweets;
 
     tweeteria::UserId m_selectedUser;
 public:
@@ -75,11 +74,13 @@ signals:
     void tweetMarkedAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
     void userSelectionChanged(tweeteria::UserId selected_user);
 
+    void additionalTimelineTweetsRequest(tweeteria::UserId, tweeteria::TweetId current_max_id);
+
 public slots:
     void userSelected(QModelIndex const& user_item);
     void onUserInfoUpdate(tweeteria::UserId updated_user_id, bool is_friend);
     void onUserTimelineUpdate(tweeteria::UserId updated_user_id);
-    void nextPage();
+    void onNextPageClicked();
 private slots:
     void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
 };

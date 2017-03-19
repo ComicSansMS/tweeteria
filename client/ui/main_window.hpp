@@ -67,6 +67,7 @@ signals:
 public slots:
     void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId user_id);
     void onUserSelectionChange(tweeteria::UserId selected_user_id);
+    void onAdditionalTimelineTweetsRequest(tweeteria::UserId user, tweeteria::TweetId max_id);
 
 private:
     void getUserIds_impl(std::shared_ptr<tweeteria::MultiPageResult<std::vector<tweeteria::UserId>>> mpres,
@@ -74,7 +75,7 @@ private:
 
     void getUserDetails_impl(std::vector<tweeteria::User> const& new_users, bool is_friend);
 
-    void getUserTimeline_impl(tweeteria::UserId user, tweeteria::TweetId cursor_id);
+    void getUserTimeline_impl(tweeteria::UserId user, std::vector<tweeteria::Tweet> const& tweets);
 };
 
 #endif
