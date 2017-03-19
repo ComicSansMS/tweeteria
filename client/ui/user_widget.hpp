@@ -35,13 +35,16 @@ private:
     QBoxLayout m_rightLayout;
     QLabel* m_userName;
     QLabel* m_twitterName;
+    QLabel* m_unread;
     QLabel* m_description;
 public:
     UserWidget(tweeteria::User const& u, QWidget* parent);
 public slots:
     void onImageArrived(QPixmap const& image);
+    void onUnreadUpdated(int unread);
 signals:
     void imageArrived(QPixmap const& image);
+    void unreadUpdate(int unread);
 };
 
 #endif

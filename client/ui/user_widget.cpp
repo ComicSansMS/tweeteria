@@ -24,6 +24,7 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
      m_rightLayout(QBoxLayout::Direction::TopToBottom),
      m_userName(new QLabel(this)),
      m_twitterName(new QLabel(this)),
+     m_unread(new QLabel(this)),
      m_description(new QLabel(this))
 {
     m_layout.addWidget(m_profileImage);
@@ -33,6 +34,7 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     m_rightLayout.addStretch(1);
     m_rightLayout.addWidget(m_description);
     m_rightLayout.addStretch(1);
+    m_layout.addWidget(m_unread);
     setLayout(&m_layout);
 
     m_profileImage->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
@@ -47,10 +49,15 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     m_description->setFont(QFont("Arial", 12));
     m_description->setWordWrap(true);
     m_description->hide();
+
+    m_unread->setFont(QFont("Arial", 18, QFont::Bold));
+    m_unread->setStyleSheet("QLabel { color: #334455; }");
+    m_unread->hide();
     //m_description->setOpenExternalLinks(true);
     //m_description->setText("Testtext <a href=\"http://www.google.de\">Link</a> More text.");
 
     connect(this, &UserWidget::imageArrived, this, &UserWidget::onImageArrived, Qt::QueuedConnection);
+    connect(this, &UserWidget::unreadUpdate, this, &UserWidget::onUnreadUpdated, Qt::QueuedConnection);
 }
 
 void UserWidget::onImageArrived(QPixmap const& image)
@@ -58,3 +65,15 @@ void UserWidget::onImageArrived(QPixmap const& image)
     m_profileImage->setPixmap(image);
 }
 
+void UserWidget::onUnreadUpdated(int unread)
+{
+    if(unread == 0) {
+        m_unread->hide();
+    } else if(unread > 50) {
+        m_unread->setText(QString("(50+)"));
+        m_unread->show();
+    } else {
+        m_unread->setText(QString("(") + QString::number(unread) + QString(")"));
+        m_unread->show();
+    }
+}

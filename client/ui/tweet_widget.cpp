@@ -64,6 +64,7 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, DataModel& data_model, QWidg
 
     if(!displayed_author) {
         m_dataModel->awaitUserInfo(getDisplayedAuthorId(), [this](tweeteria::User const& displayed_author) {
+            // @todo TweetWidget could be dead
             m_name->setText(QString::fromStdString(displayed_author.name));
             m_twitterName->setText(QString("@") + QString::fromStdString(displayed_author.screen_name));
         });

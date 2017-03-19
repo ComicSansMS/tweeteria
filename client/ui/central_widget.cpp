@@ -94,6 +94,7 @@ void CentralWidget::onUserInfoUpdate(tweeteria::UserId updated_user_id, bool is_
         auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(updated_user.profile_image_url_https).bigger;
 
         m_imageProvider->retrieve(img_url, [user_widget](QPixmap pic) {
+            // @todo user_widget could be dead
             emit user_widget->imageArrived(pic);
         });
     }
@@ -126,6 +127,7 @@ void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
         m_dataModel->awaitUserInfo(tweet_widget->getDisplayedAuthorId(), [this, tweet_widget](tweeteria::User const& displayed_author) {
             auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(displayed_author.profile_image_url_https).normal;
             m_imageProvider->retrieve(img_url, [tweet_widget](QPixmap pic) {
+                // @todo tweet_widget could be dead
                 emit tweet_widget->imageArrived(pic);
             });
         });
@@ -137,6 +139,7 @@ void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
             auto const& media = tweet.entities.media.back();
             if(media.type == "photo") {
                 m_imageProvider->retrieve(media.media_url_https, [tweet_widget, this](QPixmap pic) {
+                    // @todo tweet_widget could be dead
                     emit tweet_widget->mediaArrived(pic);
                 });
             } else {
