@@ -106,6 +106,7 @@ void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
     if(updated_user_id != m_selectedUser) { return; }
 
     auto updated_timeline = m_dataModel->getUserTimeline(updated_user_id);
+    if(updated_timeline.empty()) { return; }
     std::size_t start_index;
     if((!m_tweets.empty()) && (updated_timeline.front().id != m_tweets.front().id)) {
         m_tweetsList->clearAllTweets();
@@ -155,4 +156,14 @@ void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
 void CentralWidget::markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id)
 {
     emit tweetMarkedAsRead(tweet_id, author_id);
+}
+
+void CentralWidget::onUnreadForUserChanged(tweeteria::UserId user_id, int unread_count)
+{
+    auto const it = std::find(begin(m_usersInList), end(m_usersInList), user_id);
+    if(it == end(m_usersInList)) { return; }
+    auto const index = it - begin(m_usersInList);
+
+    auto& user_widget = dynamic_cast<UserWidget&>(*m_usersList->itemWidget(m_usersList->item(index)));
+    user_widget.onUnreadUpdated(unread_count);
 }

@@ -45,9 +45,11 @@ MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& u
         m_database.reset(new ClientDatabase(ClientDatabase::createNewDatabase(database_filename)));
     }
 
-    connect(m_centralWidget, &CentralWidget::tweetMarkedAsRead, this, &MainWindow::markTweetAsRead);
     connect(this, &MainWindow::userInfoUpdate, m_centralWidget, &CentralWidget::onUserInfoUpdate, Qt::QueuedConnection);
     connect(this, &MainWindow::userTimelineUpdate, m_centralWidget, &CentralWidget::onUserTimelineUpdate, Qt::QueuedConnection);
+    connect(this, &MainWindow::unreadForUserChanged, m_centralWidget, &CentralWidget::onUnreadForUserChanged);
+    connect(this, &MainWindow::userTimelineUpdate, this, &MainWindow::onUserTimelineUpdate, Qt::QueuedConnection);
+    connect(m_centralWidget, &CentralWidget::tweetMarkedAsRead, this, &MainWindow::markTweetAsRead);
     connect(m_centralWidget, &CentralWidget::userSelectionChanged, this, &MainWindow::onUserSelectionChange);
     connect(m_centralWidget, &CentralWidget::additionalTimelineTweetsRequest, this, &MainWindow::onAdditionalTimelineTweetsRequest);
 }
@@ -108,7 +110,10 @@ CentralWidget* MainWindow::getCentralWidget()
 
 void MainWindow::markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId user_id)
 {
-    m_database->updateUserRead(user_id, tweet_id);
+    auto const new_last_read = m_database->updateUserRead(user_id, tweet_id);
+    if(new_last_read == tweet_id) {
+        updateLastRead(user_id, tweet_id);
+    }
 }
 
 void MainWindow::onUserSelectionChange(tweeteria::UserId selected_user_id)
@@ -133,4 +138,26 @@ void MainWindow::getUserTimeline_impl(tweeteria::UserId user, std::vector<tweete
     m_tweeteria->getUsers(missing_authors).then([this](std::vector<tweeteria::User> const& missing_author_details) {
         getUserDetails_impl(missing_author_details, false);
     });
+}
+
+void MainWindow::onUserTimelineUpdate(tweeteria::UserId user_id)
+{
+    auto const last_read_id = m_database->getLastReadForUser(user_id);
+    updateLastRead(user_id, last_read_id);
+}
+
+void MainWindow::updateLastRead(tweeteria::UserId user_id, boost::optional<tweeteria::TweetId> const& last_read_id)
+{
+    int unread_count = -1;
+    if(last_read_id) {
+        auto timeline = m_dataModel->getUserTimeline(user_id);
+        int count = 0;
+        for(auto const& t : timeline) {
+            if(t <= *last_read_id) { break; }
+            ++count;
+        }
+        unread_count = (count < timeline.size()) ? count : 50;
+    }
+    GHULBUS_LOG(Trace, "New unread count for user " << user_id.id << " is " << unread_count << ".");
+    emit unreadForUserChanged(user_id, unread_count);
 }

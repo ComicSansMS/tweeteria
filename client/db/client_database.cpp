@@ -124,7 +124,7 @@ ClientDatabase ClientDatabase::createNewDatabase(std::string const& db_filename)
     return ClientDatabase(std::move(pimpl));
 }
 
-void ClientDatabase::updateUserRead(tweeteria::UserId user, tweeteria::TweetId tweet_read)
+tweeteria::TweetId ClientDatabase::updateUserRead(tweeteria::UserId user, tweeteria::TweetId tweet_read)
 {
     auto& db = m_pimpl->db;
     auto const tab = tables::Friends{};
@@ -132,9 +132,10 @@ void ClientDatabase::updateUserRead(tweeteria::UserId user, tweeteria::TweetId t
     auto const result = db(select(tab.lastReadId).from(tab).where(tab.userId == user.id));
     if(!result.empty())
     {
-        if(tweeteria::TweetId(result.front().lastReadId) >= tweet_read) {
+        auto const previousLastRead = tweeteria::TweetId(result.front().lastReadId);
+        if(previousLastRead >= tweet_read) {
             // already up to date; nothing more to do
-            return;
+            return previousLastRead;
         }
         GHULBUS_LOG(Trace, "Updating last read entry for user " << user.id << " to " << tweet_read.id << ".");
         db(update(tab).set(tab.lastReadId = tweet_read.id).where(tab.userId == user.id));
@@ -142,9 +143,10 @@ void ClientDatabase::updateUserRead(tweeteria::UserId user, tweeteria::TweetId t
         GHULBUS_LOG(Trace, "Creating last read entry for user " << user.id << " to " << tweet_read.id << ".");
         db(insert_into(tab).set(tab.userId = user.id, tab.lastReadId = tweet_read.id));
     }
+    return tweet_read;
 }
 
-tweeteria::TweetId ClientDatabase::getLastReadForUser(tweeteria::UserId user)
+boost::optional<tweeteria::TweetId> ClientDatabase::getLastReadForUser(tweeteria::UserId user)
 {
     auto& db = m_pimpl->db;
     auto const tab = tables::Friends{};
@@ -153,5 +155,5 @@ tweeteria::TweetId ClientDatabase::getLastReadForUser(tweeteria::UserId user)
     if(!result.empty()) {
         return tweeteria::TweetId(result.front().lastReadId);
     }
-    return tweeteria::TweetId(0);
+    return boost::none;
 }

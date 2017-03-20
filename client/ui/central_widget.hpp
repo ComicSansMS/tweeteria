@@ -80,6 +80,7 @@ public slots:
     void onUserInfoUpdate(tweeteria::UserId updated_user_id, bool is_friend);
     void onUserTimelineUpdate(tweeteria::UserId updated_user_id);
     void onNextPageClicked();
+    void onUnreadForUserChanged(tweeteria::UserId user_id, int unread_count);
 private slots:
     void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
 };

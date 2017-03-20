@@ -20,6 +20,8 @@
 
 #include <tweeteria/tweeteria.hpp>
 
+#include <boost/optional.hpp>
+
 #include <memory>
 #include <string>
 
@@ -41,9 +43,9 @@ public:
 
     static ClientDatabase createNewDatabase(std::string const& db_filename);
 
-    void updateUserRead(tweeteria::UserId user, tweeteria::TweetId tweet_read);
+    tweeteria::TweetId updateUserRead(tweeteria::UserId user, tweeteria::TweetId tweet_read);
 
-    tweeteria::TweetId getLastReadForUser(tweeteria::UserId user);
+    boost::optional<tweeteria::TweetId> getLastReadForUser(tweeteria::UserId user);
 };
 
 #endif

@@ -67,9 +67,9 @@ void UserWidget::onImageArrived(QPixmap const& image)
 
 void UserWidget::onUnreadUpdated(int unread)
 {
-    if(unread == 0) {
+    if(unread <= 0) {
         m_unread->hide();
-    } else if(unread > 50) {
+    } else if(unread >= 50) {
         m_unread->setText(QString("(50+)"));
         m_unread->show();
     } else {
