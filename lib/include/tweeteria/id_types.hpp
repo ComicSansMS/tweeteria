@@ -3,6 +3,7 @@
 #define TWEETERIA_INCLUDE_GUARD_ID_TYPES_HPP
 
 #include <cstdint>
+#include <iosfwd>
 #include <functional>
 
 namespace tweeteria
@@ -58,6 +59,12 @@ template<typename Id_T, typename Tag_T>
 inline bool operator>=(WrappedId<Id_T, Tag_T> const& lhs, WrappedId<Id_T, Tag_T> const& rhs)
 {
     return lhs.id >= rhs.id;
+}
+
+template<typename Id_T, typename Tag_T>
+inline std::ostream& operator<<(std::ostream& os, WrappedId<Id_T, Tag_T> const& rhs)
+{
+    return os << rhs.id;
 }
 }
 
