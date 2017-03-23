@@ -53,6 +53,7 @@ set(CLIENT_HEADER_FILES
     ${CLIENT_SOURCE_DIR}/metatype_declarations.hpp
     ${CLIENT_SOURCE_DIR}/qt_begin_disable_warnings.hpp
     ${CLIENT_SOURCE_DIR}/qt_end_disable_warnings.hpp
+    ${CLIENT_SOURCE_DIR}/user_sort_order.hpp
     ${CLIENT_SOURCE_DIR}/version.hpp
     ${CLIENT_SOURCE_DIR}/web_resource_provider.hpp
     ${CLIENT_SOURCE_DIR}/db/client_database.hpp
@@ -68,6 +69,7 @@ set(CLIENT_QT_SOURCE_FILES
     ${CLIENT_UI_DIR}/tweet_widget.cpp
     ${CLIENT_UI_DIR}/tweets_list.cpp
     ${CLIENT_UI_DIR}/user_widget.cpp
+    ${CLIENT_UI_DIR}/users_list.cpp
 )
 set(CLIENT_QT_MOC_HEADER_FILES
     ${CLIENT_UI_DIR}/main_window.hpp
@@ -76,6 +78,7 @@ set(CLIENT_QT_MOC_HEADER_FILES
     ${CLIENT_UI_DIR}/tweet_widget.hpp
     ${CLIENT_UI_DIR}/tweets_list.hpp
     ${CLIENT_UI_DIR}/user_widget.hpp
+    ${CLIENT_UI_DIR}/users_list.hpp
 )
 qt5_wrap_cpp(CLIENT_QT_MOC_SOURCE_FILES ${CLIENT_QT_MOC_HEADER_FILES})
 source_group(moc FILES

@@ -15,48 +15,52 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_USER_WIDGET_HPP
-#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_USER_WIDGET_HPP
+#ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_USERS_LIST_HPP
+#define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_USERS_LIST_HPP
 
-#include <tweeteria/user.hpp>
+#include <ui/user_widget.hpp>
+
+#include <user_sort_order.hpp>
 
 #include <QBoxLayout>
-#include <QLabel>
-#include <QPixmap>
+#include <QScrollArea>
 #include <QWidget>
 
-class UserWidget : public QWidget
+#include <vector>
+
+namespace tweeteria {
+struct Tweet;
+struct User;
+}
+
+class ImageProvider;
+class DataModel;
+
+class UsersList : public QScrollArea
 {
     Q_OBJECT
 private:
-    tweeteria::User m_user;
+    QWidget* m_list;
     QBoxLayout m_layout;
-    QLabel* m_profileImage;
-    QBoxLayout m_rightLayout;
-    QLabel* m_userName;
-    QLabel* m_twitterName;
-    QLabel* m_unread;
-    QLabel* m_description;
+    std::vector<UserWidget*> m_elements;
 
-    int m_unreadCount;
+    DataModel* m_dataModel;
+    ImageProvider* m_imageProvider;
 public:
-    UserWidget(tweeteria::User const& u, QWidget* parent);
+    UsersList(QWidget* parent, DataModel& data_model);
 
-    ~UserWidget();
+    UserWidget* addUserWidget(tweeteria::User const& user);
 
-    int getUnreadCount() const;
+    UserWidget* getUserById(tweeteria::UserId user_id);
 
-    tweeteria::UserId getUserId() const;
-    tweeteria::User const& getUserInfo() const;
-
-    void mousePressEvent(QMouseEvent* event) override;
-public slots:
-    void onImageArrived(QPixmap const& image);
-    void onUnreadUpdated(int unread);
 signals:
-    void imageArrived(QPixmap const& image);
-    void unreadUpdate(int unread);
-    void clicked(UserWidget*);
+    void userSelected(UserWidget* u);
+
+public slots:
+    void sortElements(UserSortOrder sorting);
+
+private slots:
+    void userClicked(UserWidget* u);
 };
 
 #endif

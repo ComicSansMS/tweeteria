@@ -149,8 +149,10 @@ void MainWindow::onUserTimelineUpdate(tweeteria::UserId user_id)
 void MainWindow::updateLastRead(tweeteria::UserId user_id, boost::optional<tweeteria::TweetId> const& last_read_id)
 {
     int unread_count = -1;
-    if(last_read_id) {
-        auto timeline = m_dataModel->getUserTimeline(user_id);
+    auto timeline = m_dataModel->getUserTimeline(user_id);
+    if(timeline.empty()) {
+        unread_count = 0;
+    } else if(last_read_id) {
         int count = 0;
         for(auto const& t : timeline) {
             if(t <= *last_read_id) { break; }

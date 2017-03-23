@@ -21,6 +21,7 @@
 #include <ui/user_widget.hpp>
 #include <ui/tweet_widget.hpp>
 #include <ui/tweets_list.hpp>
+#include <ui/users_list.hpp>
 
 #include <image_provider.hpp>
 #include <web_resource_provider.hpp>
@@ -34,16 +35,20 @@
 CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_model, QWidget* parent)
     :QWidget(parent), m_tweeteria(&tweeteria), m_dataModel(&data_model),
      m_webResourceProvider(new WebResourceProvider()), m_imageProvider(new ImageProvider(*m_webResourceProvider)),
-     m_centralLayout(QBoxLayout::Direction::LeftToRight),
-     m_usersList(new QListWidget(this)), m_rightPaneLayout(QBoxLayout::Direction::TopToBottom),
-     m_tweetsList(new TweetsList(this, data_model)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
+     m_centralLayout(QBoxLayout::Direction::LeftToRight), m_sortingComboBox(new QComboBox(this)),
+     m_usersList(new UsersList(this, *m_dataModel)), m_rightPaneLayout(QBoxLayout::Direction::TopToBottom),
+     m_tweetsList(new TweetsList(this, *m_dataModel)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
      m_nextPage(new QPushButton(this)), m_selectedUser(tweeteria::UserId(0))
 {
     m_usersList->setMinimumWidth(600);
-    m_centralLayout.addWidget(m_usersList);
+    m_centralLayout.addLayout(&m_leftPaneLayout);
+    m_sortingComboBox->insertItem(static_cast<int>(UserSortOrder::DateAdded), "Sort Friends by date added");
+    m_sortingComboBox->insertItem(static_cast<int>(UserSortOrder::Alphabetical), "Sort Friends alphabetically");
+    m_sortingComboBox->insertItem(static_cast<int>(UserSortOrder::Unread), "Sort Friends by unread tweets");
+    m_leftPaneLayout.addWidget(m_sortingComboBox);
+    m_leftPaneLayout.addWidget(m_usersList);
     m_usersList->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     m_usersList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    m_usersList->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 
     m_centralLayout.addLayout(&m_rightPaneLayout);
     m_tweetsList->setMinimumWidth(600);
@@ -55,8 +60,11 @@ CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_mo
     m_buttonsLayout.addWidget(m_nextPage);
     setLayout(&m_centralLayout);
 
-    connect(m_usersList, &QListWidget::clicked, this, &CentralWidget::userSelected);
+    connect(m_usersList, &UsersList::userSelected, this, &CentralWidget::userSelected);
     connect(m_nextPage, &QPushButton::clicked, this, &CentralWidget::onNextPageClicked);
+
+    connect(m_sortingComboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+            this, [this](int index) { onSortingChanged(static_cast<UserSortOrder>(index)); });
 }
 
 CentralWidget::~CentralWidget()
@@ -64,10 +72,9 @@ CentralWidget::~CentralWidget()
     // needed for unique_ptrs to forward declared providers
 }
 
-void CentralWidget::userSelected(QModelIndex const& user_item)
+void CentralWidget::userSelected(UserWidget* user_widget)
 {
-    auto const& user = m_usersInList[user_item.row()];
-    m_selectedUser = user;
+    m_selectedUser = user_widget->getUserId();
     emit userSelectionChanged(m_selectedUser);
 }
 
@@ -85,11 +92,8 @@ void CentralWidget::onUserInfoUpdate(tweeteria::UserId updated_user_id, bool is_
     auto const updated_user = *m_dataModel->getUser(updated_user_id);
 
     if(is_friend) {
-        auto user_widget = new UserWidget(updated_user, this);
-        auto list_item = new QListWidgetItem(m_usersList);
-        list_item->setSizeHint(user_widget->minimumSizeHint());
-        m_usersList->setItemWidget(list_item, user_widget);
-        m_usersInList.push_back(updated_user.id);
+        auto user_widget = m_usersList->addUserWidget(updated_user);
+        m_usersInList.push_back(user_widget);
 
         auto const img_url = tweeteria::getProfileImageUrlsFromBaseUrl(updated_user.profile_image_url_https).bigger;
 
@@ -106,9 +110,9 @@ void CentralWidget::onUserTimelineUpdate(tweeteria::UserId updated_user_id)
     if(updated_user_id != m_selectedUser) { return; }
 
     auto updated_timeline = m_dataModel->getUserTimeline(updated_user_id);
-    if(updated_timeline.empty()) { return; }
+
     std::size_t start_index;
-    if((!m_tweets.empty()) && (updated_timeline.front().id != m_tweets.front().id)) {
+    if((updated_timeline.empty()) || ((!m_tweets.empty()) && (updated_timeline.front().id != m_tweets.front().id))) {
         m_tweetsList->clearAllTweets();
         start_index = 0;
         m_tweets = updated_timeline;
@@ -160,10 +164,11 @@ void CentralWidget::markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::User
 
 void CentralWidget::onUnreadForUserChanged(tweeteria::UserId user_id, int unread_count)
 {
-    auto const it = std::find(begin(m_usersInList), end(m_usersInList), user_id);
-    if(it == end(m_usersInList)) { return; }
-    auto const index = it - begin(m_usersInList);
+    auto user_widget = m_usersList->getUserById(user_id);
+    user_widget->onUnreadUpdated(unread_count);
+}
 
-    auto& user_widget = dynamic_cast<UserWidget&>(*m_usersList->itemWidget(m_usersList->item(index)));
-    user_widget.onUnreadUpdated(unread_count);
+void CentralWidget::onSortingChanged(UserSortOrder sorting)
+{
+    m_usersList->sortElements(sorting);
 }

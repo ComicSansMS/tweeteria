@@ -21,8 +21,11 @@
 #include <QWidget>
 
 #include <QBoxLayout>
+#include <QComboBox>
 #include <QListWidget>
 #include <QPushButton>
+
+#include <user_sort_order.hpp>
 
 #include <tweeteria/user.hpp>
 #include <tweeteria/tweet.hpp>
@@ -40,6 +43,8 @@ class DataModel;
 class WebResourceProvider;
 class ImageProvider;
 class TweetsList;
+class UserWidget;
+class UsersList;
 
 class CentralWidget : public QWidget
 {
@@ -52,16 +57,17 @@ private:
 
     QBoxLayout m_centralLayout;
 
-    QListWidget* m_usersList;
+    QVBoxLayout m_leftPaneLayout;
+    QComboBox* m_sortingComboBox;
+    UsersList* m_usersList;
 
     QBoxLayout m_rightPaneLayout;
-    //QListWidget* m_tweetsList;
     TweetsList* m_tweetsList;
 
     QBoxLayout m_buttonsLayout;
     QPushButton* m_nextPage;
 
-    std::vector<tweeteria::UserId> m_usersInList;
+    std::vector<UserWidget*> m_usersInList;
     std::vector<tweeteria::TweetId> m_tweets;
 
     tweeteria::UserId m_selectedUser;
@@ -76,13 +82,14 @@ signals:
     void additionalTimelineTweetsRequest(tweeteria::UserId, tweeteria::TweetId current_max_id);
 
 public slots:
-    void userSelected(QModelIndex const& user_item);
+    void userSelected(UserWidget* user_widget);
     void onUserInfoUpdate(tweeteria::UserId updated_user_id, bool is_friend);
     void onUserTimelineUpdate(tweeteria::UserId updated_user_id);
     void onNextPageClicked();
     void onUnreadForUserChanged(tweeteria::UserId user_id, int unread_count);
 private slots:
     void markTweetAsRead(tweeteria::TweetId tweet_id, tweeteria::UserId author_id);
+    void onSortingChanged(UserSortOrder sorting);
 };
 
 #endif

@@ -17,6 +17,10 @@
  */
 #include <ui/user_widget.hpp>
 
+#include <QMouseEvent>
+
+#include <gbBase/Log.hpp>
+
 UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     :QWidget(parent), m_user(u),
      m_layout(QBoxLayout::Direction::LeftToRight),
@@ -25,8 +29,14 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
      m_userName(new QLabel(this)),
      m_twitterName(new QLabel(this)),
      m_unread(new QLabel(this)),
-     m_description(new QLabel(this))
+     m_description(new QLabel(this)),
+     m_unreadCount(-1)
 {
+    QPalette pal = palette();
+    pal.setColor(QPalette::Background, Qt::white);
+    setAutoFillBackground(true);
+    setPalette(pal);
+
     m_layout.addWidget(m_profileImage);
     m_layout.addLayout(&m_rightLayout);
     m_rightLayout.addWidget(m_userName);
@@ -34,6 +44,7 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     m_rightLayout.addStretch(1);
     m_rightLayout.addWidget(m_description);
     m_rightLayout.addStretch(1);
+    m_layout.addStretch();
     m_layout.addWidget(m_unread);
     setLayout(&m_layout);
 
@@ -60,6 +71,11 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     connect(this, &UserWidget::unreadUpdate, this, &UserWidget::onUnreadUpdated, Qt::QueuedConnection);
 }
 
+UserWidget::~UserWidget()
+{
+    GHULBUS_LOG(Trace, "Destroyed widget for user " << m_user.id.id << " (@" << m_user.screen_name << ").");
+}
+
 void UserWidget::onImageArrived(QPixmap const& image)
 {
     m_profileImage->setPixmap(image);
@@ -67,7 +83,10 @@ void UserWidget::onImageArrived(QPixmap const& image)
 
 void UserWidget::onUnreadUpdated(int unread)
 {
-    if(unread <= 0) {
+    if(unread < 0) {
+        m_unread->setText(QString("(??)"));
+        m_unread->show();
+    } else if(unread == 0) {
         m_unread->hide();
     } else if(unread >= 50) {
         m_unread->setText(QString("(50+)"));
@@ -75,5 +94,28 @@ void UserWidget::onUnreadUpdated(int unread)
     } else {
         m_unread->setText(QString("(") + QString::number(unread) + QString(")"));
         m_unread->show();
+    }
+    m_unreadCount = unread;
+}
+
+int UserWidget::getUnreadCount() const
+{
+    return m_unreadCount;
+}
+
+tweeteria::UserId UserWidget::getUserId() const
+{
+    return m_user.id;
+}
+
+tweeteria::User const& UserWidget::getUserInfo() const
+{
+    return m_user;
+}
+
+void UserWidget::mousePressEvent(QMouseEvent* event)
+{
+    if (event->button() == Qt::LeftButton) {
+        emit clicked(this);
     }
 }
