@@ -38,7 +38,7 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, DataModel& data_model, QWidg
 
     {
         auto pal = palette();
-        pal.setColor(QPalette::Background, Qt::white);
+        pal.setColor(QPalette::Window, Qt::white);
         setAutoFillBackground(true);
         setPalette(pal);
     }

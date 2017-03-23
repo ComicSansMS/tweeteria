@@ -50,6 +50,9 @@ public:
     tweeteria::User const& getUserInfo() const;
 
     void mousePressEvent(QMouseEvent* event) override;
+    void enterEvent(QEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+
 public slots:
     void onImageArrived(QPixmap const& image);
     void onUnreadUpdated(int unread);

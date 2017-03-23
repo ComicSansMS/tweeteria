@@ -33,7 +33,7 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
      m_unreadCount(-1)
 {
     QPalette pal = palette();
-    pal.setColor(QPalette::Background, Qt::white);
+    pal.setColor(QPalette::Window, Qt::white);
     setAutoFillBackground(true);
     setPalette(pal);
 
@@ -46,6 +46,7 @@ UserWidget::UserWidget(tweeteria::User const& u, QWidget* parent)
     m_rightLayout.addStretch(1);
     m_layout.addStretch();
     m_layout.addWidget(m_unread);
+    m_layout.addSpacing(10);
     setLayout(&m_layout);
 
     m_profileImage->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
@@ -118,4 +119,20 @@ void UserWidget::mousePressEvent(QMouseEvent* event)
     if (event->button() == Qt::LeftButton) {
         emit clicked(this);
     }
+}
+
+void UserWidget::enterEvent(QEvent* event)
+{
+    QPalette pal = palette();
+    pal.setColor(QPalette::Window, pal.color(QPalette::Highlight));
+    setAutoFillBackground(true);
+    setPalette(pal);
+}
+
+void UserWidget::leaveEvent(QEvent* event)
+{
+    QPalette pal = palette();
+    pal.setColor(QPalette::Window, Qt::white);
+    setAutoFillBackground(true);
+    setPalette(pal);
 }
