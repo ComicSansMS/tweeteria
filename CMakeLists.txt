@@ -14,6 +14,7 @@ if(SQLPP11_BASE_DIR)
     list(APPEND CMAKE_PREFIX_PATH ${SQLPP11_BASE_DIR})
 endif()
 find_package(Qt5Widgets 5.8 REQUIRED)
+find_package(Qt5Svg 5.8 REQUIRED)
 find_package(Boost REQUIRED)
 find_package(gbBase REQUIRED)
 find_package(sqlpp11 REQUIRED)
@@ -95,7 +96,7 @@ add_executable(tweeteria_client WIN32
     ${CLIENT_QT_MOC_SOURCE_FILES}
 )
 target_include_directories(tweeteria_client PUBLIC ${CLIENT_SOURCE_DIR})
-target_link_libraries(tweeteria_client PUBLIC tweeteria Qt5::Widgets Qt5::WinMain Ghulbus::gbBase sqlpp11-connector-sqlite3)
+target_link_libraries(tweeteria_client PUBLIC tweeteria Qt5::Widgets Qt5::Svg Qt5::WinMain Ghulbus::gbBase sqlpp11-connector-sqlite3)
 target_compile_options(tweeteria_client PRIVATE $<$<STREQUAL:$<CXX_COMPILER_ID>,MSVC>:/W4>)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tweeteria_test)
@@ -107,6 +108,7 @@ add_custom_command(TARGET tweeteria_test POST_BUILD
 )
 
 getQt5Dlls(Qt5::Widgets qt_DLLS)
+getQt5Dlls(Qt5::Svg qt_DLLS)
 file(COPY ${qt_DLLS} ${QT5_ADDITIONAL_DLLS} DESTINATION ${PROJECT_BINARY_DIR})
 
 option(TWEETERIA_BUILD_TESTS "If enabled, builds unit tests along with the library." ON)

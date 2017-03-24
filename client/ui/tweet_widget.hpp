@@ -26,6 +26,7 @@
 #include <QMenu>
 #include <QPixmap>
 #include <QPushButton>
+#include <QSvgWidget>
 #include <QWidget>
 
 class DataModel;
@@ -48,6 +49,21 @@ private:
     QLabel* m_text;
     QLabel* m_media;
     QLabel* m_date;
+
+    QHBoxLayout m_actionsLayout;
+    class SvgIcon : public QSvgWidget {
+    public:
+        SvgIcon(QWidget* parent)
+            :QSvgWidget(parent)
+        {}
+
+        QSize sizeHint() const override
+        {
+            return QSize(16, 16);
+        }
+    };
+    SvgIcon* m_replies;
+    QLabel* m_repliesLabel;
 
     class Menu {
     public:

@@ -28,11 +28,17 @@
 #include <gbBase/Assert.hpp>
 #include <gbBase/Log.hpp>
 
+namespace {
+char const* g_SvgIconReplySource = R"(<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 65 72">
+  <path fill="#AAB8C2" d="M41 31h-9V19c0-1.14-.647-2.183-1.668-2.688-1.022-.507-2.243-.39-3.15.302l-21 16C5.438 33.18 5 34.064 5 35s.437 1.82 1.182 2.387l21 16c.533.405 1.174.613 1.82.613.453 0 .908-.103 1.33-.312C31.354 53.183 32 52.14 32 51V39h9c5.514 0 10 4.486 10 10 0 2.21 1.79 4 4 4s4-1.79 4-4c0-9.925-8.075-18-18-18z"/>
+</svg>)";
+}
+
 TweetWidget::TweetWidget(tweeteria::Tweet const& t, DataModel& data_model, QWidget* parent)
     :QWidget(parent), m_tweet(t), m_author(*data_model.getUser(t.user_id)), m_dataModel(&data_model),
      m_avatar(new QLabel(this)), m_name(new QLabel(this)), m_twitterName(new QLabel(this)),
      m_menuButton(new QPushButton(this)), m_header(new QLabel(this)), m_text(new QLabel(this)), m_media(new QLabel(this)),
-     m_date(new QLabel(this)), m_menu(new Menu(this))
+     m_date(new QLabel(this)), m_replies(new SvgIcon(this)), m_repliesLabel(new QLabel(this)), m_menu(new Menu(this))
 {
     m_layout.addLayout(&m_topRowLayout);
 
@@ -94,6 +100,16 @@ TweetWidget::TweetWidget(tweeteria::Tweet const& t, DataModel& data_model, QWidg
     m_layout.addWidget(m_media);
 
     m_layout.addStretch();
+
+    m_replies->load(QByteArray(g_SvgIconReplySource));
+    m_replies->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    m_actionsLayout.addWidget(m_replies);
+    m_repliesLabel->setStyleSheet("QLabel { color: #AAB8C2; }");
+    m_repliesLabel->setText("99");
+    m_actionsLayout.addWidget(m_repliesLabel);
+
+    m_layout.addLayout(&m_actionsLayout);
+
     m_date->setFont(QFont("Arial", 8));
     m_date->setStyleSheet("QLabel { color: grey; }");
     m_date->setText(QString::fromStdString(displayed_tweet.created_at));
