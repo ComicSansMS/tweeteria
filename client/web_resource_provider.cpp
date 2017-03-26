@@ -30,7 +30,7 @@ struct WebResourceProvider::Pimpl
 {
     std::unordered_map<utility::string_t, web::http::client::http_client> connections;
     std::unordered_map<std::string, std::vector<unsigned char>> cache;
-    std::vector<Concurrency::task<void>> tasks;
+    std::vector<pplx::task<void>> tasks;
 };
 
 WebResourceProvider::WebResourceProvider()
@@ -45,7 +45,13 @@ WebResourceProvider::~WebResourceProvider()
 
 void WebResourceProvider::retrieve(std::string const& url, std::function<void(std::vector<unsigned char> const&)> retrieval_cb, CachingPolicy caching_policy)
 {
-    web::uri uri(tweeteria::convertUtf8ToUtf16(url));
+    web::uri uri(
+#ifdef _UTF16_STRINGS
+        tweeteria::convertUtf8ToUtf16(url)
+#else
+        url
+#endif
+    );
     auto const host = uri.authority();
     auto const host_str = host.to_string();
     auto it = m_pimpl->connections.find(host_str);
