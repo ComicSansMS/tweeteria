@@ -6,18 +6,19 @@ find_path(SQLPP11_CONNECTOR_SQLITE3_SOURCE_ROOT
 
 find_path(SQLITE3_INCLUDE_DIR sqlite3.h
     HINTS ENV SQLITE3_ROOT
+    PATH_SUFFIXES include
     DOC "Sqlite3 include directory"
 )
 
 find_library(SQLITE3_LIBRARY_RELEASE sqlite3
     HINTS ENV SQLITE3_ROOT
-    PATH_SUFFIXES "build/RelWithDebInfo" "build/Release"
+    PATH_SUFFIXES "build/RelWithDebInfo" "build/Release" lib
     DOC "Sqlite3 library"
 )
 
-find_library(SQLITE3_LIBRARY_DEBUG sqlite3
+find_library(SQLITE3_LIBRARY_DEBUG sqlite3d
     HINTS ENV SQLITE3_ROOT
-    PATH_SUFFIXES "build/Debug"
+    PATH_SUFFIXES "build/Debug" lib
     DOC "Sqlite3 library"
 )
 set(SQLITE3_LIBRARY
