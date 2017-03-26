@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 
 project(tweeteria)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(lib)
 
@@ -96,7 +98,10 @@ add_executable(tweeteria_client WIN32
     ${CLIENT_QT_MOC_SOURCE_FILES}
 )
 target_include_directories(tweeteria_client PUBLIC ${CLIENT_SOURCE_DIR})
-target_link_libraries(tweeteria_client PUBLIC tweeteria Qt5::Widgets Qt5::Svg Qt5::WinMain Ghulbus::gbBase sqlpp11-connector-sqlite3)
+target_link_libraries(tweeteria_client PUBLIC tweeteria Qt5::Widgets Qt5::Svg Ghulbus::gbBase sqlpp11-connector-sqlite3)
+if(WIN32)
+    target_link_libraries(tweeteria_client PUBLIC Qt5::WinMain)
+endif()
 target_compile_options(tweeteria_client PRIVATE $<$<STREQUAL:$<CXX_COMPILER_ID>,MSVC>:/W4>)
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT tweeteria_test)
@@ -107,9 +112,11 @@ add_custom_command(TARGET tweeteria_test POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Ghulbus::gbBase> $<TARGET_FILE_DIR:tweeteria_test>
 )
 
-getQt5Dlls(Qt5::Widgets qt_DLLS)
-getQt5Dlls(Qt5::Svg qt_DLLS)
-file(COPY ${qt_DLLS} ${QT5_ADDITIONAL_DLLS} DESTINATION ${PROJECT_BINARY_DIR})
+if(WIN32)
+    getQt5Dlls(Qt5::Widgets qt_DLLS)
+    getQt5Dlls(Qt5::Svg qt_DLLS)
+    file(COPY ${qt_DLLS} ${QT5_ADDITIONAL_DLLS} DESTINATION ${PROJECT_BINARY_DIR})
+endif()
 
 option(TWEETERIA_BUILD_TESTS "If enabled, builds unit tests along with the library." ON)
 if(TWEETERIA_BUILD_TESTS)
