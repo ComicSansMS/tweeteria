@@ -51,7 +51,7 @@ inline bool constexpr sqlpp11_debug()
 struct ClientDatabase::Pimpl
 {
     sqlpp::sqlite3::connection db;
-    ClientDatabase::Pimpl(sqlpp::sqlite3::connection_config const& conf);
+    Pimpl(sqlpp::sqlite3::connection_config const& conf);
 };
 
 ClientDatabase::Pimpl::Pimpl(sqlpp::sqlite3::connection_config const& conf)
@@ -99,6 +99,9 @@ ClientDatabase::~ClientDatabase()
 {
     // needed for pimpl
 }
+
+ClientDatabase::ClientDatabase(ClientDatabase&&) = default;                 // needed here for pimpl
+ClientDatabase& ClientDatabase::operator=(ClientDatabase&&) = default;      // needed here for pimpl
 
 ClientDatabase ClientDatabase::createNewDatabase(std::string const& db_filename)
 {

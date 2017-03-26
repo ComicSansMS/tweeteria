@@ -38,8 +38,8 @@ public:
     ClientDatabase(ClientDatabase const&) = delete;
     ClientDatabase& operator=(ClientDatabase const&) = delete;
 
-    ClientDatabase(ClientDatabase&&) = default;
-    ClientDatabase& operator=(ClientDatabase&&) = default;
+    ClientDatabase(ClientDatabase&&);
+    ClientDatabase& operator=(ClientDatabase&&);
 
     static ClientDatabase createNewDatabase(std::string const& db_filename);
 
