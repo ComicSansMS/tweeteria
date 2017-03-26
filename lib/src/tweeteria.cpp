@@ -60,7 +60,7 @@ std::string fromUtilString(utility::string_t const& util_str)
 #ifdef _UTF16_STRINGS
     return tweeteria::convertUtf16ToUtf8(util_str);
 #else
-    return str;
+    return util_str;
 #endif
 }
 
