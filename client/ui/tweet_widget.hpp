@@ -52,18 +52,31 @@ private:
 
     QHBoxLayout m_actionsLayout;
     class SvgIcon : public QSvgWidget {
+    private:
+        QSize m_size;
     public:
         SvgIcon(QWidget* parent)
-            :QSvgWidget(parent)
-        {}
+            :QSvgWidget(parent), m_size(QSize(24, 24))
+        {
+            setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        }
+
+        void setIconSize(QSize s)
+        {
+            m_size = s;
+        }
 
         QSize sizeHint() const override
         {
-            return QSize(16, 16);
+            return m_size;
         }
     };
     SvgIcon* m_replies;
     QLabel* m_repliesLabel;
+    SvgIcon* m_retweeets;
+    QLabel* m_retweetsLabel;
+    SvgIcon* m_favorites;
+    QLabel* m_favoritesLabel;
 
     class Menu {
     public:
