@@ -69,6 +69,8 @@ set(CLIENT_QT_SOURCE_FILES
     ${CLIENT_UI_DIR}/main_window.cpp
     ${CLIENT_UI_DIR}/central_widget.cpp
     ${CLIENT_UI_DIR}/data_model.cpp
+    ${CLIENT_UI_DIR}/opening_dialog.cpp
+    ${CLIENT_UI_DIR}/svg_icon.cpp
     ${CLIENT_UI_DIR}/tweet_widget.cpp
     ${CLIENT_UI_DIR}/tweets_list.cpp
     ${CLIENT_UI_DIR}/user_widget.cpp
@@ -78,6 +80,8 @@ set(CLIENT_QT_MOC_HEADER_FILES
     ${CLIENT_UI_DIR}/main_window.hpp
     ${CLIENT_UI_DIR}/central_widget.hpp
     ${CLIENT_UI_DIR}/data_model.hpp
+    ${CLIENT_UI_DIR}/opening_dialog.hpp
+    ${CLIENT_UI_DIR}/svg_icon.hpp
     ${CLIENT_UI_DIR}/tweet_widget.hpp
     ${CLIENT_UI_DIR}/tweets_list.hpp
     ${CLIENT_UI_DIR}/user_widget.hpp

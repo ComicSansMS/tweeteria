@@ -29,6 +29,7 @@
 #include <QSvgWidget>
 #include <QWidget>
 
+class SvgIcon;
 class DataModel;
 
 class TweetWidget : public QWidget
@@ -51,26 +52,6 @@ private:
     QLabel* m_date;
 
     QHBoxLayout m_actionsLayout;
-    class SvgIcon : public QSvgWidget {
-    private:
-        QSize m_size;
-    public:
-        SvgIcon(QWidget* parent)
-            :QSvgWidget(parent), m_size(QSize(24, 24))
-        {
-            setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-        }
-
-        void setIconSize(QSize s)
-        {
-            m_size = s;
-        }
-
-        QSize sizeHint() const override
-        {
-            return m_size;
-        }
-    };
     SvgIcon* m_replies;
     QLabel* m_repliesLabel;
     SvgIcon* m_retweeets;

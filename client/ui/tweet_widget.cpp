@@ -18,6 +18,7 @@
 #include <ui/tweet_widget.hpp>
 
 #include <ui/data_model.hpp>
+#include <ui/svg_icon.hpp>
 #include <ui/tweets_list.hpp>
 
 #include <QApplication>
