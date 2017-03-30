@@ -22,8 +22,9 @@
 #include <gbBase/Log.hpp>
 
 OpeningDialog::OpeningDialog()
-    :QWidget(nullptr, Qt::FramelessWindowHint), m_closeButton(new QPushButton(this)), m_logoIcon(new SvgIcon(this)),
-     m_tweeteriaText(new QLabel(this)), m_startButton(new QPushButton(this))
+    :QWidget(nullptr, Qt::FramelessWindowHint), m_closeButton(new QPushButton(this)),
+     m_welcomeText(new QLabel(this)), m_logoIcon(new SvgIcon(this)),
+     m_tweeteriaText(new QLabel(this)), m_startButton(new QPushButton(this)), m_waitIcon(new SvgIcon(this))
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -36,8 +37,14 @@ OpeningDialog::OpeningDialog()
     m_outerLayout.addLayout(&m_closeButtonLayout);
     m_outerLayout.addStretch();
 
+    m_welcomeText->setText("Welcome to");
+    m_welcomeText->setAlignment(Qt::AlignCenter);
+    m_welcomeText->setFont(QFont("Arial", 32, QFont::Bold));
+    m_welcomeText->setStyleSheet("QLabel { color: #1DA1F2; }");
+    m_outerLayout.addWidget(m_welcomeText);
+
     m_logoLayout.addStretch();
-    m_logoIcon->load(QString("logo.svg"));
+    m_logoIcon->load(QString(":/logo.svg"));
     m_logoIcon->setIconSize(QSize(90,64));
     m_logoIcon->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     m_logoLayout.addWidget(m_logoIcon);
@@ -48,6 +55,10 @@ OpeningDialog::OpeningDialog()
     m_logoLayout.addStretch();
     m_outerLayout.addLayout(&m_logoLayout);
     m_outerLayout.addStretch();
+
+    m_waitIcon->load(QString(":/loading_icon.svg"));
+    m_waitIcon->setIconSize(QSize(m_startButton->size().height(), m_startButton->size().height()));
+    m_outerLayout.addWidget(m_waitIcon);
 
     m_startButton->setText("Let's go...");
     m_outerLayout.addWidget(m_startButton);

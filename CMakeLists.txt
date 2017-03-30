@@ -92,6 +92,11 @@ source_group(moc FILES
     ${CLIENT_QT_MOC_SOURCE_FILES}
 )
 
+qt5_add_resources(CLIENT_QT_RESOURCE_FILES ${CLIENT_SOURCE_DIR}/resources/tweeteria_client.qrc)
+source_group(resources FILES
+    ${CLIENT_QT_RESOURCE_FILES}
+)
+
 add_executable(tweeteria_client WIN32
     ${CLIENT_SOURCE_DIR}/main.cpp
     ${CLIENT_SOURCE_FILES}
@@ -100,6 +105,7 @@ add_executable(tweeteria_client WIN32
     ${CLIENT_QT_SOURCE_FILES}
     ${CLIENT_QT_MOC_HEADER_FILES}
     ${CLIENT_QT_MOC_SOURCE_FILES}
+    ${CLIENT_QT_RESOURCE_FILES}
 )
 target_include_directories(tweeteria_client PUBLIC ${CLIENT_SOURCE_DIR})
 target_link_libraries(tweeteria_client PUBLIC tweeteria Qt5::Widgets Qt5::Svg Ghulbus::gbBase sqlpp11-connector-sqlite3)

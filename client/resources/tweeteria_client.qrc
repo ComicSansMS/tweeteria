@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file>logo.svg</file>
+    <file>loading_icon.svg</file>
+  </qresource>
+</RCC>

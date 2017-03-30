@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     }
 
     MainWindow main_window(tweeteria, *cred.user);
-    main_window.populateUsers();
+    //main_window.populateUsers();
 
     main_window.resize(1230, 800);
     OpeningDialog od;

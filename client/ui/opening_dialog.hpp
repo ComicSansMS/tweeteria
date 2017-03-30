@@ -33,10 +33,13 @@ private:
     QHBoxLayout m_closeButtonLayout;
     QPushButton* m_closeButton;
 
+    QLabel* m_welcomeText;
     QHBoxLayout m_logoLayout;
     SvgIcon* m_logoIcon;
     QLabel* m_tweeteriaText;
     QPushButton* m_startButton;
+
+    SvgIcon* m_waitIcon;
 public:
     OpeningDialog();
 
