@@ -30,6 +30,7 @@ set(TWEETERIA_SOURCES
     ${TWEETERIA_SOURCE_DIR}/entities.cpp
     ${TWEETERIA_SOURCE_DIR}/error.cpp
     ${TWEETERIA_SOURCE_DIR}/image_util.cpp
+    ${TWEETERIA_SOURCE_DIR}/proxy_config.cpp
     ${TWEETERIA_SOURCE_DIR}/string_util.cpp
     ${TWEETERIA_SOURCE_DIR}/tweet.cpp
     ${TWEETERIA_SOURCE_DIR}/tweeteria.cpp

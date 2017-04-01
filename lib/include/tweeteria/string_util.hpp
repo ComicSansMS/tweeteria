@@ -4,6 +4,7 @@
 
 #include <tweeteria/exceptions.hpp>
 
+#include <iosfwd>
 #include <string>
 
 namespace tweeteria
@@ -105,6 +106,9 @@ inline std::size_t lengthUtf8CodePoints(ForwardIt first, ForwardIt last)
     }
     return count;
 }
+
+void serialize_string(std::string const& str, std::ostream& os);
+std::string deserialize_string(std::istream& is);
 }
 
 #endif

@@ -12,8 +12,6 @@
 
 #include <algorithm>
 #include <exception>
-#include <iostream>
-#include <istream>
 #include <iterator>
 #include <memory>
 #include <ostream>
@@ -76,25 +74,6 @@ std::shared_ptr<web::http::oauth1::experimental::oauth1_config> createOAuthConfi
     if(!oauth_token.is_valid_access_token()) { throw tweeteria::InvalidArgument("Invalid OAuth token."); }
     ret->set_token(oauth_token);
     return ret;
-}
-
-void serialize_string(std::string const& str, std::ostream& os)
-{
-    std::uint64_t const string_size = str.length();
-    os.write(reinterpret_cast<char const*>(&string_size), sizeof(string_size));
-    os.write(str.c_str(), string_size);
-    if(!os) { throw tweeteria::IOError("Error while serializing string."); }
-}
-
-std::string deserialize_string(std::istream& is)
-{
-    std::uint64_t string_size;
-    is.read(reinterpret_cast<char*>(&string_size), sizeof(string_size));
-    std::vector<char> buffer;
-    buffer.resize(string_size, '0');
-    is.read(buffer.data(), buffer.size());
-    if(!is) { throw tweeteria::IOError("Error while deserializing string."); }
-    return std::string(begin(buffer), end(buffer));
 }
 } // anonymous namespace
 
