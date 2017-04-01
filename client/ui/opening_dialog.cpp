@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <ui/opening_dialog.hpp>
+#include <ui/proxy_config_dialog.hpp>
 
 #include <ui/svg_icon.hpp>
 
@@ -24,7 +25,8 @@
 OpeningDialog::OpeningDialog()
     :QWidget(nullptr, Qt::FramelessWindowHint), m_closeButton(new QPushButton(this)),
      m_welcomeText(new QLabel(this)), m_logoIcon(new SvgIcon(this)),
-     m_tweeteriaText(new QLabel(this)), m_startButton(new QPushButton(this)), m_waitIcon(new SvgIcon(this))
+     m_tweeteriaText(new QLabel(this)), m_configureProxyButton(new QPushButton(this)),
+     m_startButton(new QPushButton(this)), m_waitIcon(new SvgIcon(this))
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -60,6 +62,9 @@ OpeningDialog::OpeningDialog()
     m_waitIcon->setIconSize(QSize(m_startButton->size().height(), m_startButton->size().height()));
     m_outerLayout.addWidget(m_waitIcon);
 
+    m_configureProxyButton->setText("Configure Proxy");
+    m_outerLayout.addWidget(m_configureProxyButton);
+
     m_startButton->setText("Let's go...");
     m_outerLayout.addWidget(m_startButton);
 
@@ -68,6 +73,7 @@ OpeningDialog::OpeningDialog()
     setLayout(&m_outerLayout);
 
     connect(m_closeButton, &QPushButton::clicked, this, &OpeningDialog::onCloseButtonClicked);
+    connect(m_configureProxyButton, &QPushButton::clicked, this, &OpeningDialog::onConfigureProxyClicked);
 }
 
 void OpeningDialog::onCloseButtonClicked()
@@ -76,3 +82,15 @@ void OpeningDialog::onCloseButtonClicked()
     close();
 }
 
+void OpeningDialog::onConfigureProxyClicked()
+{
+    ProxyConfigDialog dialog(this);
+    dialog.setFromProxyConfig(m_proxyConfig);
+    dialog.setWindowModality(Qt::WindowModal);
+    hide();
+    auto const res = dialog.exec();
+    show();
+    if(res == QDialog::Accepted) {
+        m_proxyConfig = dialog.getProxyConfig();
+    }
+}

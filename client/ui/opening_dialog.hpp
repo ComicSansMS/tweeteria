@@ -24,6 +24,8 @@
 #include <QWidget>
 #include <QStackedWidget>
 
+#include <tweeteria/proxy_config.hpp>
+
 class SvgIcon;
 
 class OpeningDialog : public QWidget {
@@ -37,9 +39,12 @@ private:
     QHBoxLayout m_logoLayout;
     SvgIcon* m_logoIcon;
     QLabel* m_tweeteriaText;
+    QPushButton* m_configureProxyButton;
     QPushButton* m_startButton;
 
     SvgIcon* m_waitIcon;
+
+    tweeteria::ProxyConfig m_proxyConfig;
 public:
     OpeningDialog();
 
@@ -47,6 +52,7 @@ signals:
     void go();
 private slots:
     void onCloseButtonClicked();
+    void onConfigureProxyClicked();
 };
 
 #endif
