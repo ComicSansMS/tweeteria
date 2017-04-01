@@ -23,7 +23,7 @@
 #include <gbBase/Log.hpp>
 
 ProxyConfigDialog::ProxyConfigDialog(QWidget* parent)
-    :QWidget(parent, Qt::Dialog), m_headerLabel(new QLabel(this)), m_comboBox(new QComboBox(this)),
+    :QDialog(parent,  Qt::WindowTitleHint | Qt::WindowSystemMenuHint), m_headerLabel(new QLabel(this)), m_comboBox(new QComboBox(this)),
      m_addressLabel(new QLabel(this)), m_addressEdit(new QLineEdit(this)), m_portLabel(new QLabel(this)), m_portEdit(new QLineEdit(this)),
      m_credentialsCheckbox(new QCheckBox(this)), m_credentialsUserEdit(new QLineEdit(this)),
      m_credentialsPassEdit(new QLineEdit(this)), m_displayPasswordCheckBox(new QCheckBox(this)),
@@ -35,7 +35,7 @@ ProxyConfigDialog::ProxyConfigDialog(QWidget* parent)
     // proxy address column should stretch more than the others
     m_outerLayout.setColumnStretch(1, 1);
 
-    m_headerLabel->setText("If you access Twitter through an HTTP/HTTPS proxy, configure it here.");
+    m_headerLabel->setText("If you access the Internet through a proxy, configure it here.");
     m_outerLayout.addWidget(m_headerLabel, 0, 0, 1, 4);
 
     m_comboBox->addItem("No proxy");
@@ -83,6 +83,8 @@ ProxyConfigDialog::ProxyConfigDialog(QWidget* parent)
             });
     connect(m_comboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this, [this](int index) { proxyModeChange(static_cast<ProxyMode>(index)); });
+    connect(m_dialogButtons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(m_dialogButtons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 }
 
 void ProxyConfigDialog::updateCredentialsWidgets(int check_state)
@@ -122,4 +124,61 @@ void ProxyConfigDialog::proxyModeChange(ProxyMode const& mode)
         m_displayPasswordCheckBox->hide();
         m_displayPasswordCheckBox->setChecked(false);
     }
+}
+
+void ProxyConfigDialog::setFromProxyConfig(tweeteria::ProxyConfig const& proxy_config)
+{
+    switch(proxy_config.mode) {
+    case tweeteria::ProxyConfig::Mode::None:
+        m_comboBox->setCurrentIndex(static_cast<int>(ProxyMode::None));
+        break;
+    case tweeteria::ProxyConfig::Mode::Auto:
+        m_comboBox->setCurrentIndex(static_cast<int>(ProxyMode::Auto));
+        break;
+    case tweeteria::ProxyConfig::Mode::System:
+        m_comboBox->setCurrentIndex(static_cast<int>(ProxyMode::System));
+        break;
+    case tweeteria::ProxyConfig::Mode::Manual:
+        m_comboBox->setCurrentIndex(static_cast<int>(ProxyMode::Manual));
+        m_addressEdit->setText(QString::fromStdString(proxy_config.proxy_url));
+        m_portEdit->setText(QString::number(proxy_config.proxy_port));
+        if(!proxy_config.proxy_login_user.empty() || !proxy_config.proxy_login_password.empty()) {
+            m_credentialsCheckbox->setChecked(true);
+            m_credentialsUserEdit->setText(QString::fromStdString(proxy_config.proxy_login_user));
+            m_credentialsPassEdit->setText(QString::fromStdString(proxy_config.proxy_login_password));
+        }
+        break;
+    default:
+        GHULBUS_LOG(Error, "Invalid mode in proxy config: " << static_cast<int>(proxy_config.mode) << ".");
+        break;
+    }
+}
+
+tweeteria::ProxyConfig ProxyConfigDialog::getProxyConfig() const
+{
+    tweeteria::ProxyConfig ret;
+    switch(static_cast<ProxyMode>(m_comboBox->currentIndex())) {
+    case ProxyMode::None:
+        ret.mode = tweeteria::ProxyConfig::Mode::None;
+        break;
+    case ProxyMode::Auto:
+        ret.mode = tweeteria::ProxyConfig::Mode::Auto;
+        break;
+    case ProxyMode::System:
+        ret.mode = tweeteria::ProxyConfig::Mode::System;
+        break;
+    case ProxyMode::Manual:
+        ret.mode = tweeteria::ProxyConfig::Mode::Manual;
+        break;
+    default:
+        GHULBUS_LOG(Error, "Invalid option in proxy dialog: " << m_comboBox->currentIndex() << ".");
+        ret.mode = tweeteria::ProxyConfig::Mode::None;
+    }
+    ret.proxy_url = m_addressEdit->text().toStdString();
+    ret.proxy_port = m_portEdit->text().toUShort();
+    if(m_credentialsCheckbox->isChecked()) {
+        ret.proxy_login_user = m_credentialsUserEdit->text().toStdString();
+        ret.proxy_login_password = m_credentialsPassEdit->text().toStdString();
+    }
+    return ret;
 }

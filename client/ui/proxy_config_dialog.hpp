@@ -22,19 +22,19 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDialog>
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QWidget>
 #include <QStackedWidget>
 #include <qt_end_disable_warnings.hpp>
 
-class SvgIcon;
+#include <tweeteria/proxy_config.hpp>
 
-class ProxyConfigDialog : public QWidget {
+class ProxyConfigDialog : public QDialog {
     Q_OBJECT
 public:
     enum class ProxyMode {
@@ -64,9 +64,10 @@ private:
 public:
     ProxyConfigDialog(QWidget* parent);
 
+    void setFromProxyConfig(tweeteria::ProxyConfig const& proxy_config);
+
+    tweeteria::ProxyConfig getProxyConfig() const;
 signals:
-    void accepted();
-    void rejected();
 private slots:
     void updateCredentialsWidgets(int check_state);
 private:
