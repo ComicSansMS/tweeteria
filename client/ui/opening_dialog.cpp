@@ -26,7 +26,7 @@ OpeningDialog::OpeningDialog()
     :QWidget(nullptr, Qt::FramelessWindowHint), m_closeButton(new QPushButton(this)),
      m_welcomeText(new QLabel(this)), m_logoIcon(new SvgIcon(this)),
      m_tweeteriaText(new QLabel(this)), m_configureProxyButton(new QPushButton(this)),
-     m_startButton(new QPushButton(this)), m_waitIcon(new SvgIcon(this))
+     m_startButton(new QPushButton(this)), m_statusWaitIcon(new SvgIcon(this)), m_statusLabel(new QLabel(this))
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -58,9 +58,14 @@ OpeningDialog::OpeningDialog()
     m_outerLayout.addLayout(&m_logoLayout);
     m_outerLayout.addStretch();
 
-    m_waitIcon->load(QString(":/loading_icon.svg"));
-    m_waitIcon->setIconSize(QSize(m_startButton->size().height(), m_startButton->size().height()));
-    m_outerLayout.addWidget(m_waitIcon);
+    m_outerLayout.addLayout(&m_statusLayout);
+    m_statusLayout.setAlignment(Qt::AlignHCenter);
+    m_statusWaitIcon->load(QString(":/loading_icon.svg"));
+    m_statusWaitIcon->setIconSize(QSize(m_startButton->size().height(), m_startButton->size().height()));
+    m_statusLayout.addWidget(m_statusWaitIcon);
+
+    m_statusLabel->setText("");
+    m_statusLayout.addWidget(m_statusLabel);
 
     m_configureProxyButton->setText("Configure Proxy");
     m_outerLayout.addWidget(m_configureProxyButton);
@@ -93,4 +98,36 @@ void OpeningDialog::onConfigureProxyClicked()
     if(res == QDialog::Accepted) {
         m_proxyConfig = dialog.getProxyConfig();
     }
+}
+
+void OpeningDialog::hideStatus()
+{
+    m_statusWaitIcon->hide();
+    m_statusLabel->hide();
+}
+
+void OpeningDialog::showStatus(QString const& text, bool isInProgress)
+{
+    m_statusLabel->setText(text);
+    m_statusLabel->show();
+    if(isInProgress) {
+        m_statusWaitIcon->show();
+    } else {
+        m_statusWaitIcon->hide();
+    }
+}
+
+void OpeningDialog::onStartConnectivityTest()
+{
+    showStatus("Checking Internet connection...", true);
+}
+
+void OpeningDialog::onConnectivityTestSuccessful()
+{
+    showStatus("Connection successful.", false);
+}
+
+void OpeningDialog::onConnectivityTestFailed(QString const& error)
+{
+    showStatus("Connection failed: " + error, false);
 }

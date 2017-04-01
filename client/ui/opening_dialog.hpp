@@ -42,7 +42,9 @@ private:
     QPushButton* m_configureProxyButton;
     QPushButton* m_startButton;
 
-    SvgIcon* m_waitIcon;
+    QHBoxLayout m_statusLayout;
+    SvgIcon* m_statusWaitIcon;
+    QLabel* m_statusLabel;
 
     tweeteria::ProxyConfig m_proxyConfig;
 public:
@@ -50,6 +52,15 @@ public:
 
 signals:
     void go();
+public slots:
+    void hideStatus();
+    void showStatus(QString const& text, bool isInProgress);
+
+    void onStartConnectivityTest();
+    void onConnectivityTestSuccessful();
+    void onConnectivityTestFailed(QString const& error);
+
+
 private slots:
     void onCloseButtonClicked();
     void onConfigureProxyClicked();

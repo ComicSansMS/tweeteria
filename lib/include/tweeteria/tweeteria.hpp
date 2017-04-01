@@ -37,6 +37,8 @@ struct VerificationResult
     std::shared_ptr<User> user;
 };
 
+pplx::task<void> checkConnectivity();
+
 template<typename T>
 class MultiPageResult
 {

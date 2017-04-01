@@ -102,6 +102,15 @@ OAuthCredentials OAuthCredentials::deserialize(std::istream& is)
     return ret;
 }
 
+pplx::task<void> checkConnectivity()
+{
+    web::http::client::http_client client(Endpoints::twitter_api_endpoint());
+    return client.request(web::http::methods::GET).then([](web::http::http_response) {
+        // if we could not connect, we will get an exception instead
+        return;
+    });
+}
+
 struct Tweeteria::Pimpl
 {
     std::shared_ptr<web::http::oauth1::experimental::oauth1_config> oauth_config;
