@@ -17,6 +17,7 @@ set(TWEETERIA_HEADERS
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/exceptions.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/id_types.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/image_util.hpp
+    ${TWEETERIA_INCLUDE_DIR}/tweeteria/proxy_config.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/string_util.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/tweet.hpp
     ${TWEETERIA_INCLUDE_DIR}/tweeteria/tweeteria.hpp
