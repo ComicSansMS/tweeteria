@@ -19,6 +19,8 @@
 
 namespace tweeteria
 {
+struct ProxyConfig;
+
 struct OAuthCredentials
 {
     std::string consumer_key;
@@ -36,11 +38,6 @@ struct VerificationResult
     Errors errors;
     std::shared_ptr<User> user;
 };
-
-struct ProxyConfig;
-
-pplx::task<void> checkConnectivity(ProxyConfig const& proxy_config,
-                                   pplx::cancellation_token const& token = pplx::cancellation_token::none());
 
 template<typename T>
 class MultiPageResult
@@ -118,6 +115,16 @@ public:
     pplx::task<std::vector<User>> getUsers(std::vector<UserId> const& user_ids);
 
     pplx::task<std::vector<Tweet>> getTweets(std::vector<TweetId> const& tweet_ids);
+
+public:
+    static pplx::task<void> checkConnectivity(ProxyConfig const& proxy_config,
+                                              pplx::cancellation_token const& token = pplx::cancellation_token::none());
+
+    typedef std::function<std::string(std::string const&)> OAuthAuthenticationCallback;
+    static pplx::task<OAuthCredentials> performOAuthAuthentication(ProxyConfig const& proxy_config,
+                                                                   std::string const& consumer_key,
+                                                                   std::string const& consumer_secret,
+                                                                   OAuthAuthenticationCallback const& authenticate_cb);
 };
 }
 

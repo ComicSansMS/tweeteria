@@ -77,6 +77,21 @@ std::shared_ptr<web::http::oauth1::experimental::oauth1_config> createOAuthConfi
     return ret;
 }
 
+tweeteria::OAuthCredentials credentialsFromOAuthConfig(web::http::oauth1::experimental::oauth1_config const& config)
+{
+    tweeteria::OAuthCredentials ret;
+    std::string consumer_key;
+    std::string consumer_secret;
+    std::string access_token;
+    std::string token_secret;
+    ret.consumer_key = fromUtilString(config.consumer_key());
+    ret.consumer_secret = fromUtilString(config.consumer_secret());
+    auto const& token = config.token();
+    ret.access_token = fromUtilString(token.access_token());
+    ret.token_secret = fromUtilString(token.secret());
+    return ret;
+}
+
 web::web_proxy constructProxyFromConfig(tweeteria::ProxyConfig const& cfg)
 {
     if(cfg.mode == tweeteria::ProxyConfig::Mode::Manual) {
@@ -125,7 +140,8 @@ OAuthCredentials OAuthCredentials::deserialize(std::istream& is)
     return ret;
 }
 
-pplx::task<void> checkConnectivity(ProxyConfig const& proxy_config, pplx::cancellation_token const& token)
+/* static */
+pplx::task<void> Tweeteria::checkConnectivity(ProxyConfig const& proxy_config, pplx::cancellation_token const& token)
 {
     auto const web_proxy = constructProxyFromConfig(proxy_config);
     web::http::client::http_client_config config;
@@ -137,6 +153,35 @@ pplx::task<void> checkConnectivity(ProxyConfig const& proxy_config, pplx::cancel
         }
         // if we could not connect, we will get an exception instead
         return;
+    });
+}
+
+/* static */
+pplx::task<OAuthCredentials> Tweeteria::performOAuthAuthentication(ProxyConfig const& proxy_config,
+                                                                   std::string const& consumer_key,
+                                                                   std::string const& consumer_secret,
+                                                                   OAuthAuthenticationCallback const& authenticate_cb)
+{
+    
+    auto cfg_ptr = std::make_shared<web::http::oauth1::experimental::oauth1_config>(
+        toUtilString(consumer_key), toUtilString(consumer_secret),
+        Endpoints::oauth_temp_endpoint(), Endpoints::oauth_auth_endpoint(),
+        Endpoints::oauth_token_endpoint(), Endpoints::oauth_callback_uri(),
+        web::http::oauth1::experimental::oauth1_methods::hmac_sha1);
+    web::http::oauth1::experimental::oauth1_config& cfg = *cfg_ptr;
+
+    auto const web_proxy = constructProxyFromConfig(proxy_config);
+    cfg.set_proxy(web_proxy);
+
+    return cfg.build_authorization_uri().then([cfg_ptr, authenticate_cb](utility::string_t const& auth_url)
+    {
+        web::http::oauth1::experimental::oauth1_config& cfg = *cfg_ptr;
+        std::string pin_str = authenticate_cb(fromUtilString(auth_url));
+        return cfg.token_from_verifier(toUtilString(pin_str));
+    }).then([cfg_ptr]()
+    {
+        web::http::oauth1::experimental::oauth1_config& cfg = *cfg_ptr;
+        return credentialsFromOAuthConfig(cfg);
     });
 }
 

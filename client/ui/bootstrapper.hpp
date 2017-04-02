@@ -43,6 +43,8 @@ public:
 
     void checkConnectivity();
 
+    void startOAuth();
+
 signals:
     void connectivityCheckStarted(int generation_count);
     void connectivityCheckSucceeded(int generation_count);

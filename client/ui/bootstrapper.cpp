@@ -30,6 +30,8 @@
 struct Bootstrapper::Pimpl {
     pplx::cancellation_token_source cts;
 
+    tweeteria::OAuthCredentials oauth_creds;
+
     Pimpl() = default;
 };
 
@@ -46,20 +48,27 @@ void Bootstrapper::checkConnectivity()
     ++m_connectivityTestGenerationCount;
     auto const gen_count = m_connectivityTestGenerationCount;
     emit connectivityCheckStarted(gen_count);
-    tweeteria::checkConnectivity(m_proxyConfig, m_pimpl->cts.get_token()).then([this, gen_count](pplx::task<void> const& result) {
-        try {
-            result.get();
-            emit connectivityCheckSucceeded(gen_count);
-        } catch(web::http::http_exception& e) {
-            emit connectivityCheckFailed(gen_count, QString(e.what()));
-        } catch(pplx::task_canceled&) {
-            emit connectivityCheckFailed(gen_count, "Canceled.");
-        } catch(std::exception& e) {
-            emit connectivityCheckFailed(gen_count, QString("Unexpected error: ") + e.what());
-        } catch(...) {
-            emit connectivityCheckFailed(gen_count, "Unexpected error.");
-        }
-    });
+    tweeteria::Tweeteria::checkConnectivity(m_proxyConfig, m_pimpl->cts.get_token())
+        .then([this, gen_count](pplx::task<void> const& result)
+        {
+            try {
+                result.get();
+                emit connectivityCheckSucceeded(gen_count);
+            } catch(web::http::http_exception& e) {
+                emit connectivityCheckFailed(gen_count, QString(e.what()));
+            } catch(pplx::task_canceled&) {
+                emit connectivityCheckFailed(gen_count, "Canceled.");
+            } catch(std::exception& e) {
+                emit connectivityCheckFailed(gen_count, QString("Unexpected error: ") + e.what());
+            } catch(...) {
+                emit connectivityCheckFailed(gen_count, "Unexpected error.");
+            }
+        });
+}
+
+void Bootstrapper::startOAuth()
+{
+
 }
 
 void Bootstrapper::onProxyConfigurationChange(tweeteria::ProxyConfig new_proxy_config)
