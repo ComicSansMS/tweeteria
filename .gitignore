@@ -1,2 +1,3 @@
 build/*
 client/db/ddl/*
+client/api_credentials.hpp
