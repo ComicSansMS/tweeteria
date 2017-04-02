@@ -51,6 +51,7 @@ set(CLIENT_DATABASE_TABLE_HEADERS
 source_group("Table Headers" FILES ${CLIENT_DATABASE_TABLE_HEADERS})
 
 set(CLIENT_HEADER_FILES
+    ${CLIENT_SOURCE_DIR}/api_credentials.hpp
     ${CLIENT_SOURCE_DIR}/exceptions.hpp
     ${CLIENT_SOURCE_DIR}/image_provider.hpp
     ${CLIENT_SOURCE_DIR}/metatype_declarations.hpp
