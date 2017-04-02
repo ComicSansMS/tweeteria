@@ -2,6 +2,7 @@
 #include <tweeteria/tweeteria.hpp>
 
 #include <tweeteria/exceptions.hpp>
+#include <tweeteria/proxy_config.hpp>
 #include <tweeteria/string_util.hpp>
 
 #include <cpprest/http_client.h>
@@ -75,6 +76,28 @@ std::shared_ptr<web::http::oauth1::experimental::oauth1_config> createOAuthConfi
     ret->set_token(oauth_token);
     return ret;
 }
+
+web::web_proxy constructProxyFromConfig(tweeteria::ProxyConfig const& cfg)
+{
+    if(cfg.mode == tweeteria::ProxyConfig::Mode::Manual) {
+        web::uri_builder proxy_uri(web::uri(toUtilString(cfg.proxy_url)));
+        if(cfg.proxy_port != 0) {
+            proxy_uri.set_port(cfg.proxy_port);
+        }
+        web::web_proxy ret(proxy_uri.to_uri());
+        if(!cfg.proxy_login_user.empty() || !cfg.proxy_login_password.empty()) {
+            web::credentials cred(toUtilString(cfg.proxy_login_user), toUtilString(cfg.proxy_login_password));
+            ret.set_credentials(cred);
+        }
+        return ret;
+    } else if(cfg.mode == tweeteria::ProxyConfig::Mode::Auto) {
+        return web::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
+    } else if(cfg.mode == tweeteria::ProxyConfig::Mode::System) {
+        return web::web_proxy(web::web_proxy::web_proxy_mode::use_default);
+    } else {
+        return web::web_proxy(web::web_proxy::web_proxy_mode::disabled);
+    }
+}
 } // anonymous namespace
 
 namespace tweeteria
@@ -102,10 +125,16 @@ OAuthCredentials OAuthCredentials::deserialize(std::istream& is)
     return ret;
 }
 
-pplx::task<void> checkConnectivity()
+pplx::task<void> checkConnectivity(ProxyConfig const& proxy_config, pplx::cancellation_token const& token)
 {
-    web::http::client::http_client client(Endpoints::twitter_api_endpoint());
-    return client.request(web::http::methods::GET).then([](web::http::http_response) {
+    auto const web_proxy = constructProxyFromConfig(proxy_config);
+    web::http::client::http_client_config config;
+    config.set_proxy(web_proxy);
+    web::http::client::http_client client(Endpoints::twitter_api_endpoint(), config);
+    return client.request(web::http::methods::GET, token).then([token](web::http::http_response) {
+        if(token.is_canceled()) {
+            pplx::cancel_current_task();
+        }
         // if we could not connect, we will get an exception instead
         return;
     });

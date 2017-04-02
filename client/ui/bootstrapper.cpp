@@ -17,6 +17,8 @@
  */
 #include <ui/bootstrapper.hpp>
 
+#include <ui/opening_dialog.hpp>
+
 #include <tweeteria/tweeteria.hpp>
 
 #include <cpprest/http_msg.h>
@@ -24,21 +26,46 @@
 #include <gbBase/Assert.hpp>
 #include <gbBase/Log.hpp>
 
+
+struct Bootstrapper::Pimpl {
+    pplx::cancellation_token_source cts;
+
+    Pimpl() = default;
+};
+
 Bootstrapper::Bootstrapper(QObject* parent)
-    :QObject(parent)
+    :QObject(parent), m_pimpl(std::make_unique<Pimpl>()), m_proxyConfig(), m_connectivityTestGenerationCount(0)
 {
 }
 
+// needed for pimpl:
+Bootstrapper::~Bootstrapper() = default;
+
 void Bootstrapper::checkConnectivity()
 {
-    tweeteria::checkConnectivity().then([this](pplx::task<void> const& result) {
+    ++m_connectivityTestGenerationCount;
+    auto const gen_count = m_connectivityTestGenerationCount;
+    emit connectivityCheckStarted(gen_count);
+    tweeteria::checkConnectivity(m_proxyConfig, m_pimpl->cts.get_token()).then([this, gen_count](pplx::task<void> const& result) {
         try {
             result.get();
-            emit connectivityCheckSucceeded();
+            emit connectivityCheckSucceeded(gen_count);
         } catch(web::http::http_exception& e) {
-            emit connectivityCheckFailed(QString(e.what()));
+            emit connectivityCheckFailed(gen_count, QString(e.what()));
+        } catch(pplx::task_canceled&) {
+            emit connectivityCheckFailed(gen_count, "Canceled.");
+        } catch(std::exception& e) {
+            emit connectivityCheckFailed(gen_count, QString("Unexpected error: ") + e.what());
         } catch(...) {
-            emit connectivityCheckFailed("Unexpected error.");
+            emit connectivityCheckFailed(gen_count, "Unexpected error.");
         }
     });
+}
+
+void Bootstrapper::onProxyConfigurationChange(tweeteria::ProxyConfig new_proxy_config)
+{
+    m_pimpl->cts.cancel();
+    m_pimpl->cts = pplx::cancellation_token_source();
+    m_proxyConfig = std::move(new_proxy_config);
+    checkConnectivity();
 }

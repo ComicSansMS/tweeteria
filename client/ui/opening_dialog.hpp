@@ -22,7 +22,9 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QWidget>
+#include <QSpacerItem>
 #include <QStackedWidget>
+#include <QTimer>
 
 #include <tweeteria/proxy_config.hpp>
 
@@ -40,26 +42,30 @@ private:
     SvgIcon* m_logoIcon;
     QLabel* m_tweeteriaText;
     QPushButton* m_configureProxyButton;
-    QPushButton* m_startButton;
+    QPushButton* m_goButton;
 
     QHBoxLayout m_statusLayout;
     SvgIcon* m_statusWaitIcon;
     QLabel* m_statusLabel;
 
+    QTimer* m_connectivityTimeout;
+
     tweeteria::ProxyConfig m_proxyConfig;
+    int m_connectivityTestGenerationCount;
 public:
     OpeningDialog();
 
 signals:
     void go();
+    void proxyConfigurationChanged(tweeteria::ProxyConfig new_proxy_config);
 public slots:
     void hideStatus();
     void showStatus(QString const& text, bool isInProgress);
 
-    void onStartConnectivityTest();
-    void onConnectivityTestSuccessful();
-    void onConnectivityTestFailed(QString const& error);
-
+    void onStartConnectivityTest(int generation_count);
+    void onConnectivityTestSuccessful(int generation_count);
+    void onConnectivityTestFailed(int generation_count, QString const& error);
+    void onConnectivityTestTimeout();
 
 private slots:
     void onCloseButtonClicked();

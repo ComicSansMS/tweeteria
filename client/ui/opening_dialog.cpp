@@ -26,7 +26,8 @@ OpeningDialog::OpeningDialog()
     :QWidget(nullptr, Qt::FramelessWindowHint), m_closeButton(new QPushButton(this)),
      m_welcomeText(new QLabel(this)), m_logoIcon(new SvgIcon(this)),
      m_tweeteriaText(new QLabel(this)), m_configureProxyButton(new QPushButton(this)),
-     m_startButton(new QPushButton(this)), m_statusWaitIcon(new SvgIcon(this)), m_statusLabel(new QLabel(this))
+     m_goButton(new QPushButton(this)), m_statusWaitIcon(new SvgIcon(this)), m_statusLabel(new QLabel(this)),
+     m_connectivityTimeout(new QTimer(this)), m_connectivityTestGenerationCount(0)
 {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
@@ -61,24 +62,32 @@ OpeningDialog::OpeningDialog()
     m_outerLayout.addLayout(&m_statusLayout);
     m_statusLayout.setAlignment(Qt::AlignHCenter);
     m_statusWaitIcon->load(QString(":/loading_icon.svg"));
-    m_statusWaitIcon->setIconSize(QSize(m_startButton->size().height(), m_startButton->size().height()));
     m_statusLayout.addWidget(m_statusWaitIcon);
 
     m_statusLabel->setText("");
     m_statusLayout.addWidget(m_statusLabel);
 
+    // insert a spacer so that the status label position
+    //  does not change when we hide the status icon.
+    m_statusLayout.addSpacerItem(new QSpacerItem(0, m_statusWaitIcon->sizeHint().height()));
+
     m_configureProxyButton->setText("Configure Proxy");
+    m_configureProxyButton->hide();
     m_outerLayout.addWidget(m_configureProxyButton);
 
-    m_startButton->setText("Let's go...");
-    m_outerLayout.addWidget(m_startButton);
+    m_goButton->setText("Let's go...");
+    m_goButton->hide();
+    m_outerLayout.addWidget(m_goButton);
 
-    connect(m_startButton, &QPushButton::clicked, this, [this]() { emit go(); });
+    connect(m_goButton, &QPushButton::clicked, this, [this]() { emit go(); });
 
     setLayout(&m_outerLayout);
 
+    m_connectivityTimeout->setSingleShot(true);
+
     connect(m_closeButton, &QPushButton::clicked, this, &OpeningDialog::onCloseButtonClicked);
     connect(m_configureProxyButton, &QPushButton::clicked, this, &OpeningDialog::onConfigureProxyClicked);
+    connect(m_connectivityTimeout, &QTimer::timeout, this, &OpeningDialog::onConnectivityTestTimeout);
 }
 
 void OpeningDialog::onCloseButtonClicked()
@@ -97,6 +106,7 @@ void OpeningDialog::onConfigureProxyClicked()
     show();
     if(res == QDialog::Accepted) {
         m_proxyConfig = dialog.getProxyConfig();
+        emit proxyConfigurationChanged(m_proxyConfig);
     }
 }
 
@@ -117,17 +127,38 @@ void OpeningDialog::showStatus(QString const& text, bool isInProgress)
     }
 }
 
-void OpeningDialog::onStartConnectivityTest()
+void OpeningDialog::onStartConnectivityTest(int generation_count)
 {
     showStatus("Checking Internet connection...", true);
+    // timeout is 5 seconds
+    m_connectivityTimeout->start(5000);
+    m_connectivityTestGenerationCount = generation_count;
 }
 
-void OpeningDialog::onConnectivityTestSuccessful()
+void OpeningDialog::onConnectivityTestSuccessful(int generation_count)
 {
-    showStatus("Connection successful.", false);
+    if(m_connectivityTestGenerationCount == generation_count)
+    {
+        m_connectivityTimeout->stop();
+        showStatus("Connection successful.", false);
+        m_goButton->show();
+        m_configureProxyButton->hide();
+        m_connectivityTestGenerationCount = 0;
+    }
 }
 
-void OpeningDialog::onConnectivityTestFailed(QString const& error)
+void OpeningDialog::onConnectivityTestFailed(int generation_count, QString const& error)
 {
-    showStatus("Connection failed: " + error, false);
+    if(m_connectivityTestGenerationCount == generation_count)
+    {
+        m_connectivityTimeout->stop();
+        showStatus("Connection failed: " + error, false);
+        m_configureProxyButton->show();
+        m_connectivityTestGenerationCount = 0;
+    }
+}
+
+void OpeningDialog::onConnectivityTestTimeout()
+{
+    m_configureProxyButton->show();
 }

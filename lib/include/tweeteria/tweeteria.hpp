@@ -37,7 +37,10 @@ struct VerificationResult
     std::shared_ptr<User> user;
 };
 
-pplx::task<void> checkConnectivity();
+struct ProxyConfig;
+
+pplx::task<void> checkConnectivity(ProxyConfig const& proxy_config,
+                                   pplx::cancellation_token const& token = pplx::cancellation_token::none());
 
 template<typename T>
 class MultiPageResult

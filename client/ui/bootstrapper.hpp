@@ -20,12 +20,23 @@
 
 #include <QObject>
 
+#include <tweeteria/proxy_config.hpp>
+
+#include <memory>
+
 class Bootstrapper : public QObject
 {
     Q_OBJECT
 private:
+    struct Pimpl;
+    std::unique_ptr<Pimpl> m_pimpl;
+
+    tweeteria::ProxyConfig m_proxyConfig;
+    int m_connectivityTestGenerationCount;
 public:
     Bootstrapper(QObject* parent);
+
+    ~Bootstrapper();
 
     Bootstrapper(Bootstrapper const&) = delete;
     Bootstrapper& operator=(Bootstrapper const&) = delete;
@@ -33,11 +44,12 @@ public:
     void checkConnectivity();
 
 signals:
-    void connectivityCheckSucceeded();
-    void connectivityCheckFailed(QString const& reason);
+    void connectivityCheckStarted(int generation_count);
+    void connectivityCheckSucceeded(int generation_count);
+    void connectivityCheckFailed(int generation_count, QString const& reason);
 
 public slots:
-
+    void onProxyConfigurationChange(tweeteria::ProxyConfig new_proxy_config);
 };
 
 #endif

@@ -16,8 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <ui/main_window.hpp>
-#include <ui/opening_dialog.hpp>
+
+#include <ui/bootstrapper.hpp>
 #include <ui/central_widget.hpp>
+#include <ui/opening_dialog.hpp>
 #include <ui/user_widget.hpp>
 #include <ui/tweet_widget.hpp>
 
@@ -77,6 +79,8 @@ int main(int argc, char* argv[])
         std::ifstream fin("tweeteria.cred", std::ios_base::binary);
         credentials = tweeteria::OAuthCredentials::deserialize(fin);
     }
+    
+    /*
     tweeteria::Tweeteria tweeteria(credentials);
     auto ft_cred = tweeteria.verifyCredentials();
     auto cred = ft_cred.get();
@@ -116,11 +120,25 @@ int main(int argc, char* argv[])
 
     MainWindow main_window(tweeteria, *cred.user);
     //main_window.populateUsers();
-
     main_window.resize(1230, 800);
+    */
+
+    Bootstrapper bootstrap(nullptr);
+
     OpeningDialog od;
-    QObject::connect(&od, &OpeningDialog::go, &main_window, [&od, &main_window]() { main_window.show(); od.close(); });
+
+    QObject::connect(&bootstrap, &Bootstrapper::connectivityCheckStarted,
+                     &od, &OpeningDialog::onStartConnectivityTest);
+    QObject::connect(&bootstrap, &Bootstrapper::connectivityCheckSucceeded,
+                     &od, &OpeningDialog::onConnectivityTestSuccessful, Qt::QueuedConnection);
+    QObject::connect(&bootstrap, &Bootstrapper::connectivityCheckFailed,
+                     &od, &OpeningDialog::onConnectivityTestFailed, Qt::QueuedConnection);
+    QObject::connect(&od, &OpeningDialog::proxyConfigurationChanged, &bootstrap, &Bootstrapper::onProxyConfigurationChange);
+
+    //QObject::connect(&od, &OpeningDialog::go, &main_window, [&od, &main_window]() { main_window.show(); od.close(); });
     od.show();
+
+    bootstrap.checkConnectivity();
 
     return theApp.exec();
 }

@@ -21,13 +21,14 @@
 #include <QMetaType>
 
 #include <tweeteria/id_types.hpp>
+#include <tweeteria/proxy_config.hpp>
 #include <tweeteria/tweet.hpp>
 #include <tweeteria/user.hpp>
 
 Q_DECLARE_METATYPE(tweeteria::TweetId)
 Q_DECLARE_METATYPE(tweeteria::UserId)
+Q_DECLARE_METATYPE(tweeteria::ProxyConfig)
 Q_DECLARE_METATYPE(tweeteria::Tweet)
 Q_DECLARE_METATYPE(tweeteria::User)
-
 
 #endif
