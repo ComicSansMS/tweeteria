@@ -120,7 +120,7 @@ public:
     static pplx::task<void> checkConnectivity(ProxyConfig const& proxy_config,
                                               pplx::cancellation_token const& token = pplx::cancellation_token::none());
 
-    typedef std::function<std::string(std::string const&)> OAuthAuthenticationCallback;
+    typedef std::function<pplx::task<std::string>(std::string const&)> OAuthAuthenticationCallback;
     static pplx::task<OAuthCredentials> performOAuthAuthentication(ProxyConfig const& proxy_config,
                                                                    std::string const& consumer_key,
                                                                    std::string const& consumer_secret,

@@ -18,15 +18,19 @@
 #ifndef TWEETERIA_CLIENT_INCLUDE_GUARD_UI_OPENING_DIALOG_HPP
 #define TWEETERIA_CLIENT_INCLUDE_GUARD_UI_OPENING_DIALOG_HPP
 
+#include <qt_begin_disable_warnings.hpp>
 #include <QBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QWidget>
 #include <QSpacerItem>
 #include <QStackedWidget>
 #include <QTimer>
+#include <qt_end_disable_warnings.hpp>
 
 #include <tweeteria/proxy_config.hpp>
+#include <tweeteria/user.hpp>
 
 class SvgIcon;
 
@@ -50,6 +54,10 @@ private:
 
     QTimer* m_connectivityTimeout;
 
+    QLabel* m_authenticateUrl;
+    QLineEdit* m_authenticatePin;
+    QPushButton* m_authenticateButton;
+
     tweeteria::ProxyConfig m_proxyConfig;
     int m_connectivityTestGenerationCount;
 public:
@@ -58,6 +66,7 @@ public:
 signals:
     void go();
     void proxyConfigurationChanged(tweeteria::ProxyConfig new_proxy_config);
+    void oauthPinEntered(QString const& pin_str);
 public slots:
     void hideStatus();
     void showStatus(QString const& text, bool isInProgress);
@@ -66,6 +75,10 @@ public slots:
     void onConnectivityTestSuccessful(int generation_count);
     void onConnectivityTestFailed(int generation_count, QString const& error);
     void onConnectivityTestTimeout();
+
+    void onOAuthUrlArrived(QString url);
+
+    void onCredentialsVerified(tweeteria::User const& user);
 
 private slots:
     void onCloseButtonClicked();

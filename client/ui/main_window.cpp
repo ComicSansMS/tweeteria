@@ -29,11 +29,12 @@
 #include <gbBase/Assert.hpp>
 #include <gbBase/Log.hpp>
 
-MainWindow::MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user)
-    :QMainWindow(), m_tweeteria(&tweeteria), m_dataModel(new DataModel(this, user)), 
-     m_centralWidget(new CentralWidget(tweeteria, *m_dataModel, this)), m_database(nullptr)
+MainWindow::MainWindow(std::shared_ptr<tweeteria::Tweeteria> tweeteria, tweeteria::User const& user)
+    :QMainWindow(), m_tweeteria(std::move(tweeteria)), m_dataModel(new DataModel(this, user)), 
+     m_centralWidget(new CentralWidget(*m_tweeteria, *m_dataModel, this)), m_database(nullptr)
 {
     setWindowTitle("Tweeteria");
+    resize(1230, 800);
     setCentralWidget(m_centralWidget);
     setStyleSheet("QMainWindow { background-color: white }");
 

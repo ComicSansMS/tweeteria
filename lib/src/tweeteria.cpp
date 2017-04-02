@@ -173,10 +173,11 @@ pplx::task<OAuthCredentials> Tweeteria::performOAuthAuthentication(ProxyConfig c
     auto const web_proxy = constructProxyFromConfig(proxy_config);
     cfg.set_proxy(web_proxy);
 
-    return cfg.build_authorization_uri().then([cfg_ptr, authenticate_cb](utility::string_t const& auth_url)
+    return cfg.build_authorization_uri().then([authenticate_cb](utility::string_t const& auth_url)
     {
+        return authenticate_cb(fromUtilString(auth_url));
+    }).then([cfg_ptr](std::string const& pin_str) {
         web::http::oauth1::experimental::oauth1_config& cfg = *cfg_ptr;
-        std::string pin_str = authenticate_cb(fromUtilString(auth_url));
         return cfg.token_from_verifier(toUtilString(pin_str));
     }).then([cfg_ptr]()
     {

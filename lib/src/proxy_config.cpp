@@ -11,7 +11,7 @@
 namespace tweeteria
 {
 ProxyConfig::ProxyConfig()
-    :mode(Mode::None)
+    :mode(Mode::None), proxy_port(0)
 {}
 
 void ProxyConfig::serialize(std::ostream& os) const

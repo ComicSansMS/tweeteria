@@ -20,6 +20,8 @@
 
 #include <QObject>
 
+#include <tweeteria/forward_decl.hpp>
+#include <tweeteria/user.hpp>
 #include <tweeteria/proxy_config.hpp>
 
 #include <memory>
@@ -43,15 +45,24 @@ public:
 
     void checkConnectivity();
 
-    void startOAuth();
+    void checkCredentials();
+
+    std::shared_ptr<tweeteria::Tweeteria> getTweeteria() const;
+    std::shared_ptr<tweeteria::User> getVerifiedUser() const;
 
 signals:
     void connectivityCheckStarted(int generation_count);
     void connectivityCheckSucceeded(int generation_count);
     void connectivityCheckFailed(int generation_count, QString const& reason);
 
+    void oauthAuthorizationUrlReady(QString url);
+    void oauthCredentialsUpdated();
+
+    void credentialsVerified(tweeteria::User const& user);
+
 public slots:
     void onProxyConfigurationChange(tweeteria::ProxyConfig new_proxy_config);
+    void onOAuthPinEntered(QString const& pin_str);
 };
 
 #endif

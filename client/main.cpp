@@ -74,59 +74,9 @@ int main(int argc, char* argv[])
 
     registerMetatypes();
 
-    tweeteria::OAuthCredentials credentials;
-    {
-        std::ifstream fin("tweeteria.cred", std::ios_base::binary);
-        credentials = tweeteria::OAuthCredentials::deserialize(fin);
-    }
-    
-    /*
-    tweeteria::Tweeteria tweeteria(credentials);
-    auto ft_cred = tweeteria.verifyCredentials();
-    auto cred = ft_cred.get();
-    if(!cred.is_verified) {
-        QMessageBox msgBox;
-        msgBox.setText("Could not verify your credentials.");
-        msgBox.setInformativeText("The Twitter server rejected your login credentials.");
-        msgBox.setStandardButtons(QMessageBox::Ok);
-        if(!cred.errors.errors.empty()) {
-            auto const error = cred.errors.errors.front();
-            msgBox.setDetailedText(QString("The reported error was:\n%1 - %2")
-                                    .arg(error.code)
-                                    .arg(QString::fromStdString(error.message)));
-        }
-        msgBox.setIcon(QMessageBox::Critical);
-        msgBox.exec();
-        return 1;
-    }
-
-    auto my_friends_ids = tweeteria.getMyFriendsIds();
-    std::vector<tweeteria::UserId> friend_ids;
-    while(!my_friends_ids.done())
-    {
-        auto const new_friends = my_friends_ids.nextPage().get();
-        friend_ids.insert(end(friend_ids), begin(new_friends), end(new_friends));
-    }
-
-    std::vector<tweeteria::User> users;
-    for(std::size_t i=0; i<friend_ids.size();)
-    {
-        std::size_t const i_end = std::min(i + 100, friend_ids.size());
-        std::vector<tweeteria::UserId> query_ids(begin(friend_ids) + i, begin(friend_ids) + i_end);
-        i = i_end;
-        auto const new_friends = tweeteria.getUsers(query_ids).get();
-        users.insert(end(users), begin(new_friends), end(new_friends));
-    }
-
-    MainWindow main_window(tweeteria, *cred.user);
-    //main_window.populateUsers();
-    main_window.resize(1230, 800);
-    */
-
     Bootstrapper bootstrap(nullptr);
 
     OpeningDialog od;
-
     QObject::connect(&bootstrap, &Bootstrapper::connectivityCheckStarted,
                      &od, &OpeningDialog::onStartConnectivityTest);
     QObject::connect(&bootstrap, &Bootstrapper::connectivityCheckSucceeded,
@@ -134,11 +84,24 @@ int main(int argc, char* argv[])
     QObject::connect(&bootstrap, &Bootstrapper::connectivityCheckFailed,
                      &od, &OpeningDialog::onConnectivityTestFailed, Qt::QueuedConnection);
     QObject::connect(&od, &OpeningDialog::proxyConfigurationChanged, &bootstrap, &Bootstrapper::onProxyConfigurationChange);
+    QObject::connect(&bootstrap, &Bootstrapper::oauthAuthorizationUrlReady,
+                     &od, &OpeningDialog::onOAuthUrlArrived, Qt::QueuedConnection);
 
-    //QObject::connect(&od, &OpeningDialog::go, &main_window, [&od, &main_window]() { main_window.show(); od.close(); });
+    QObject::connect(&bootstrap, &Bootstrapper::credentialsVerified,
+                     &od, &OpeningDialog::onCredentialsVerified, Qt::QueuedConnection);
+    QObject::connect(&od, &OpeningDialog::oauthPinEntered, &bootstrap, &Bootstrapper::onOAuthPinEntered);
     od.show();
 
     bootstrap.checkConnectivity();
+
+    std::unique_ptr<MainWindow> main_window;
+    QObject::connect(&bootstrap, &Bootstrapper::credentialsVerified,
+                     &bootstrap, [&bootstrap, &od, &main_window]() 
+        {
+            main_window = std::make_unique<MainWindow>(bootstrap.getTweeteria(), *bootstrap.getVerifiedUser());
+            main_window->populateUsers();
+            QObject::connect(&od, &OpeningDialog::go, main_window.get(), [&main_window, &od]() { main_window->show(); od.close(); });
+        }, Qt::QueuedConnection);
 
     return theApp.exec();
 }

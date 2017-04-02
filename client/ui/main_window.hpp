@@ -49,12 +49,12 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 private:
-    tweeteria::Tweeteria* m_tweeteria;
+    std::shared_ptr<tweeteria::Tweeteria> m_tweeteria;
     DataModel* m_dataModel;
     CentralWidget* m_centralWidget;
     std::unique_ptr<ClientDatabase> m_database;
 public:
-    MainWindow(tweeteria::Tweeteria& tweeteria, tweeteria::User const& user);
+    MainWindow(std::shared_ptr<tweeteria::Tweeteria> tweeteria, tweeteria::User const& user);
 
     ~MainWindow();
 
