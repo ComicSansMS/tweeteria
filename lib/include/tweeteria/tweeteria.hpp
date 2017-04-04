@@ -95,6 +95,7 @@ private:
     std::unique_ptr<Pimpl> m_pimpl;
 public:
     Tweeteria(OAuthCredentials const& credentials);
+    Tweeteria(OAuthCredentials const& credentials, ProxyConfig const& proxy_config);
     ~Tweeteria();
 
     Tweeteria(Tweeteria const&) = delete;
@@ -121,10 +122,13 @@ public:
                                               pplx::cancellation_token const& token = pplx::cancellation_token::none());
 
     typedef std::function<pplx::task<std::string>(std::string const&)> OAuthAuthenticationCallback;
-    static pplx::task<OAuthCredentials> performOAuthAuthentication(ProxyConfig const& proxy_config,
-                                                                   std::string const& consumer_key,
+    static pplx::task<OAuthCredentials> performOAuthAuthentication(std::string const& consumer_key,
                                                                    std::string const& consumer_secret,
                                                                    OAuthAuthenticationCallback const& authenticate_cb);
+    static pplx::task<OAuthCredentials> performOAuthAuthentication(std::string const& consumer_key,
+                                                                   std::string const& consumer_secret,
+                                                                   OAuthAuthenticationCallback const& authenticate_cb,
+                                                                   ProxyConfig const& proxy_config);
 };
 }
 

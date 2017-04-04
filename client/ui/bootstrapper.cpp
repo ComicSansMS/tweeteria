@@ -108,12 +108,12 @@ void Bootstrapper::checkConnectivity()
 void Bootstrapper::checkCredentials()
 {
     if(m_pimpl->oauth_creds.access_token.empty() || m_pimpl->oauth_creds.token_secret.empty()) {
-        tweeteria::Tweeteria::performOAuthAuthentication(m_proxyConfig,
+        tweeteria::Tweeteria::performOAuthAuthentication(
             APICredentials::consumer_key(), APICredentials::consumer_secret(),
             [this](std::string const& url) -> pplx::task<std::string> {
                 emit oauthAuthorizationUrlReady(QString::fromStdString(url));
                 return pplx::create_task(m_pimpl->pin_retrieval_event);
-            }).then([this](pplx::task<tweeteria::OAuthCredentials> const& task) {
+            }, m_proxyConfig).then([this](pplx::task<tweeteria::OAuthCredentials> const& task) {
                 try {
                     auto const credentials = task.get();
                     GHULBUS_LOG(Info, "Successfully retrieved OAuth credentials.");
