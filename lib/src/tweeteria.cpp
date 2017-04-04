@@ -95,7 +95,8 @@ tweeteria::OAuthCredentials credentialsFromOAuthConfig(web::http::oauth1::experi
 web::web_proxy constructProxyFromConfig(tweeteria::ProxyConfig const& cfg)
 {
     if(cfg.mode == tweeteria::ProxyConfig::Mode::Manual) {
-        web::uri_builder proxy_uri(web::uri(toUtilString(cfg.proxy_url)));
+        web::uri_builder proxy_uri;
+        proxy_uri.set_host(toUtilString(cfg.proxy_url));
         if(cfg.proxy_port != 0) {
             proxy_uri.set_port(cfg.proxy_port);
         }
