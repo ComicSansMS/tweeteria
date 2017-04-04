@@ -30,6 +30,16 @@
 
 #include <fstream>
 
+namespace {
+constexpr char const* proxy_cfg_filename() {
+    return "tweeteria.proxy";
+}
+
+constexpr char const* credentials_filename() {
+    return "tweeteria.cred";
+}
+}
+
 struct Bootstrapper::Pimpl {
     pplx::cancellation_token_source cts;
 
@@ -48,8 +58,7 @@ Bootstrapper::Bootstrapper(QObject* parent)
     :QObject(parent), m_pimpl(std::make_unique<Pimpl>()), m_proxyConfig(), m_connectivityTestGenerationCount(0)
 {
     {
-        char const* proxy_cfg_filename = "tweeteria.proxy";
-        std::ifstream fin_proxy_cfg(proxy_cfg_filename, std::ios_base::binary);
+        std::ifstream fin_proxy_cfg(proxy_cfg_filename(), std::ios_base::binary);
         if(fin_proxy_cfg) {
             auto const proxy_cfg = tweeteria::ProxyConfig::deserialize(fin_proxy_cfg);
             if(!fin_proxy_cfg) {
@@ -60,8 +69,7 @@ Bootstrapper::Bootstrapper(QObject* parent)
         }
     }
     {
-        char const* credentials_filename = "tweeteria.cred";
-        std::ifstream fin_credentials(credentials_filename, std::ios_base::binary);
+        std::ifstream fin_credentials(credentials_filename(), std::ios_base::binary);
         if(fin_credentials) {
             auto credentials = tweeteria::OAuthCredentials::deserialize(fin_credentials);
             if(!fin_credentials) {
@@ -118,6 +126,10 @@ void Bootstrapper::checkCredentials()
                     auto const credentials = task.get();
                     GHULBUS_LOG(Info, "Successfully retrieved OAuth credentials.");
                     m_pimpl->oauth_creds = credentials;
+                    {
+                        std::ofstream fout(credentials_filename(), std::ios_base::binary);
+                        m_pimpl->oauth_creds.serialize(fout);
+                    }
                     emit oauthCredentialsUpdated();
                 } catch(std::exception& e) {
                     // todo: retry on error
@@ -160,5 +172,11 @@ void Bootstrapper::onProxyConfigurationChange(tweeteria::ProxyConfig new_proxy_c
     m_pimpl->cts.cancel();
     m_pimpl->cts = pplx::cancellation_token_source();
     m_proxyConfig = std::move(new_proxy_config);
+
+    {
+        std::ofstream fout(proxy_cfg_filename(), std::ios_base::binary);
+        m_proxyConfig.serialize(fout);
+    }
+
     checkConnectivity();
 }
