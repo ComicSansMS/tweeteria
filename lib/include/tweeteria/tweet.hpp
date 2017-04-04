@@ -18,6 +18,7 @@ struct User;
 struct Tweet {
     std::string created_at;
     Entities entities;
+    ExtendedEntities extended_entities;
     std::int32_t favorite_count;
     bool favorited;
     TweetId id;

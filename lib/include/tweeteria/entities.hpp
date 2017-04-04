@@ -77,6 +77,38 @@ struct Media
     static Media fromJSON(rapidjson::Value const& val);
 };
 
+struct Variant {
+    std::int32_t bitrate;
+    std::string content_type;
+    std::string url;
+
+    static Variant fromJSON(rapidjson::Value const& val);
+};
+
+struct VideoInfo {
+    std::array<std::int32_t, 2> aspect_ratio;
+    std::int32_t duration_millis;
+    std::vector<Variant> variants;
+
+    static VideoInfo fromJSON(rapidjson::Value const& val);
+};
+
+struct ExtendedMedia
+{
+    std::string display_url;
+    std::string expanded_url;
+    MediaId id;
+    Indices indices;
+    std::string media_url_https;
+    Sizes sizes;
+    TweetId source_status_id;
+    std::string type;
+    std::string url;
+    VideoInfo video_info;
+
+    static ExtendedMedia fromJSON(rapidjson::Value const& val);
+};
+
 struct Url {
     std::string display_url;
     std::string expanded_url;
@@ -102,9 +134,14 @@ struct Entities {
     std::vector<Media> media;
     std::vector<Url> urls;
     std::vector<UserMention> user_mentions;
-    // @todo extended_entities
 
     static Entities fromJSON(rapidjson::Value const& val);
+};
+
+struct ExtendedEntities {
+    std::vector<ExtendedMedia> media;
+
+    static ExtendedEntities fromJSON(rapidjson::Value const& val);
 };
 
 struct UserEntities {

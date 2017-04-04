@@ -82,6 +82,53 @@ Media Media::fromJSON(rapidjson::Value const& val)
     return ret;
 }
 
+Variant Variant::fromJSON(rapidjson::Value const& val)
+{
+    if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Variant."); }
+    Variant ret;
+    auto it_bitrate = val.FindMember("bitrate");
+    ret.bitrate = (it_bitrate != val.MemberEnd()) ? it_bitrate->value.GetInt() : -1;
+    ret.content_type = val["content_type"].Get<std::string>();
+    ret.url = val["url"].Get<std::string>();
+    return ret;
+}
+
+VideoInfo VideoInfo::fromJSON(rapidjson::Value const& val)
+{
+    if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for VideoInfo."); }
+    VideoInfo ret;
+    ret.aspect_ratio[0] = val["aspect_ratio"].GetArray()[0].GetInt();
+    ret.aspect_ratio[1] = val["aspect_ratio"].GetArray()[1].GetInt();
+    auto it_duration_millis = val.FindMember("duration_millis");
+    ret.duration_millis = (it_duration_millis != val.MemberEnd()) ? it_duration_millis->value.GetInt() : -1;
+    auto it_variants = val.FindMember("variants");
+    if(it_variants != val.MemberEnd()) {
+        std::transform(it_variants->value.Begin(), it_variants->value.End(), std::back_inserter(ret.variants), Variant::fromJSON);
+    }
+    return ret;
+}
+
+ExtendedMedia ExtendedMedia::fromJSON(rapidjson::Value const& val)
+{
+    if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for ExtendedMedia."); }
+    ExtendedMedia ret;
+    ret.display_url = val["display_url"].Get<std::string>();
+    ret.expanded_url = val["expanded_url"].Get<std::string>();
+    ret.id = MediaId(val["id"].GetUint64());
+    ret.indices = Indices::fromJSON(val["indices"]);
+    ret.media_url_https = val["media_url_https"].Get<std::string>();
+    ret.sizes = Sizes::fromJSON(val["sizes"]);
+    auto it_source_status_id = val.FindMember("source_status_id");
+    ret.source_status_id = TweetId((it_source_status_id != val.MemberEnd()) ? it_source_status_id->value.GetUint64() : 0);
+    ret.type = val["type"].Get<std::string>();
+    ret.url = val["url"].Get<std::string>();
+    auto it_video_info = val.FindMember("video_info");
+    if(it_video_info != val.MemberEnd()) {
+        ret.video_info = VideoInfo::fromJSON(val["video_info"]);
+    }
+    return ret;
+}
+
 Url Url::fromJSON(rapidjson::Value const& val)
 {
     if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for Url."); }
@@ -135,6 +182,15 @@ Entities Entities::fromJSON(rapidjson::Value const& val)
     entitiesFromJSON(val, "media", ret.media);
     entitiesFromJSON(val, "urls", ret.urls);
     entitiesFromJSON(val, "user_mentions", ret.user_mentions);
+    return ret;
+}
+
+ExtendedEntities ExtendedEntities::fromJSON(rapidjson::Value const& val)
+{
+    if(!val.IsObject()) { throw InvalidJSONFormat("Unexpected JSon format for ExtendedEntities."); }
+    ExtendedEntities ret;
+    entitiesFromJSON(val, "media", ret.media);
+
     return ret;
 }
 

@@ -29,6 +29,10 @@ Tweet Tweet::fromJSON(rapidjson::Value const& val)
     Tweet ret;
     ret.created_at = val["created_at"].Get<std::string>();
     ret.entities = Entities::fromJSON(val["entities"]);
+    auto it_extended_entities = val.FindMember("extended_entities");
+    if(it_extended_entities != val.MemberEnd()) {
+        ret.extended_entities = ExtendedEntities::fromJSON(it_extended_entities->value);
+    }
     ret.favorite_count = getNullable<std::int32_t>(val["favorite_count"]);
     ret.favorited = getNullable<bool>(val["favorited"]);
     ret.id = TweetId(val["id"].GetUint64());
