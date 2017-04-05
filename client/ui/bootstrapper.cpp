@@ -137,7 +137,7 @@ void Bootstrapper::checkCredentials()
                 }
             });
     } else {
-        m_pimpl->tweeteria = std::make_shared<tweeteria::Tweeteria>(m_pimpl->oauth_creds);
+        m_pimpl->tweeteria = std::make_shared<tweeteria::Tweeteria>(m_pimpl->oauth_creds, m_proxyConfig);
         m_pimpl->tweeteria->verifyCredentials().then([this](pplx::task<tweeteria::VerificationResult> const& res) {
             try {
                 auto const verification_result = res.get();
