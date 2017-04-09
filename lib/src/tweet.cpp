@@ -155,13 +155,17 @@ std::string Tweet::getDisplayText() const
     while(src_i != src_end)
     {
         if(replacements_it != end(replacements)) {
-            auto it = avanceUtf8CodePoints(base_it + src_i, text.cend(), (replacements_it->startIndex + utf8_correction) - src_i);
+            auto const start = base_it + src_i;
+            auto it = advanceUtf8CodePoints(start, text.cend(), (replacements_it->startIndex + utf8_correction) - src_i);
             ret += std::string(base_it + src_i, it);
             std::size_t const len_code_units = it - (base_it + src_i);
             std::size_t const len_code_points = lengthUtf8CodePoints(base_it + src_i, it);
             utf8_correction += len_code_units - len_code_points;
 
             ret += replacements_it->replacement;
+            auto const repl_code_point_it = advanceUtf8CodePoints(it, text.cend(), replacements_it->endIndex - replacements_it->startIndex);
+            auto const repl_code_unit_it = it + (replacements_it->endIndex - replacements_it->startIndex);
+            utf8_correction += repl_code_point_it - repl_code_unit_it;
             src_i = replacements_it->endIndex + utf8_correction;
             ++replacements_it;
         } else {

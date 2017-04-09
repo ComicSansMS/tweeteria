@@ -16,7 +16,7 @@ std::size_t lengthUtf8CodePoints(char const* utf8_str, std::size_t length_code_u
 std::size_t lengthUtf8CodePoints(std::string const& utf8_str);
 
 template<class ForwardIt>
-inline ForwardIt avanceUtf8CodePoints(ForwardIt first, ForwardIt last, std::size_t n_code_points)
+inline ForwardIt advanceUtf8CodePoints(ForwardIt first, ForwardIt last, std::size_t n_code_points)
 {
     auto it = first;
     auto advance_and_check = [last](ForwardIt& it) {
