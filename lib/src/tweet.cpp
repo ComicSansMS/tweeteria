@@ -115,11 +115,11 @@ std::string Tweet::getDisplayText() const
             std::string("<font color=\"#1DA1F2\">#<a href=\"https://twitter.com/hashtag/") + ht.text + "?src=hash\"><span style=\"color:#1DA1F2;\">" + ht.text + "</span></a></font>"
         );
     }
-    for(auto const& sym : entities.symbols) {
+    for(auto const& sym : entities.symbols) {       // "cashtags"
         replacements.emplace_back(
             sym.indices[0],
             sym.indices[1],
-            sym.text
+            std::string("<font color=\"#1DA1F2\">$<a href=\"https://twitter.com/search?q=$") + sym.text + "&src=ctag\"><span style=\"color:#1DA1F2;\">" + sym.text + "</span></a></font>"
         );
     }
     for(auto const& um : entities.user_mentions) {
