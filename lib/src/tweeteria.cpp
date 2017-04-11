@@ -5,6 +5,8 @@
 #include <tweeteria/proxy_config.hpp>
 #include <tweeteria/string_util.hpp>
 
+#include <tweeteria/detail/proxy_config_util.hpp>
+
 #include <cpprest/http_client.h>
 #include <cpprest/oauth1.h>
 
@@ -63,29 +65,6 @@ std::string fromUtilString(utility::string_t const& util_str)
 #endif
 }
 
-web::web_proxy constructProxyFromConfig(tweeteria::ProxyConfig const& cfg)
-{
-    if(cfg.mode == tweeteria::ProxyConfig::Mode::Manual) {
-        web::uri_builder proxy_uri;
-        proxy_uri.set_host(toUtilString(cfg.proxy_url));
-        if(cfg.proxy_port != 0) {
-            proxy_uri.set_port(cfg.proxy_port);
-        }
-        web::web_proxy ret(proxy_uri.to_uri());
-        if(!cfg.proxy_login_user.empty() || !cfg.proxy_login_password.empty()) {
-            web::credentials cred(toUtilString(cfg.proxy_login_user), toUtilString(cfg.proxy_login_password));
-            ret.set_credentials(cred);
-        }
-        return ret;
-    } else if(cfg.mode == tweeteria::ProxyConfig::Mode::Auto) {
-        return web::web_proxy(web::web_proxy::web_proxy_mode::use_auto_discovery);
-    } else if(cfg.mode == tweeteria::ProxyConfig::Mode::System) {
-        return web::web_proxy(web::web_proxy::web_proxy_mode::use_default);
-    } else {
-        return web::web_proxy(web::web_proxy::web_proxy_mode::disabled);
-    }
-}
-
 std::shared_ptr<web::http::oauth1::experimental::oauth1_config> createOAuthConfig(tweeteria::OAuthCredentials const& credentials,
                                                                                   tweeteria::ProxyConfig const& proxy_config)
 {
@@ -98,7 +77,7 @@ std::shared_ptr<web::http::oauth1::experimental::oauth1_config> createOAuthConfi
         toUtilString(credentials.access_token), toUtilString(credentials.token_secret));
     if(!oauth_token.is_valid_access_token()) { throw tweeteria::InvalidArgument("Invalid OAuth token."); }
     ret->set_token(oauth_token);
-    web::web_proxy const proxy = constructProxyFromConfig(proxy_config);
+    web::web_proxy const proxy = tweeteria::detail::constructProxyFromConfig(proxy_config);
     ret->set_proxy(proxy);
     return ret;
 }
@@ -106,7 +85,7 @@ std::shared_ptr<web::http::oauth1::experimental::oauth1_config> createOAuthConfi
 web::http::client::http_client_config createHttpClientConfig(tweeteria::ProxyConfig const& proxy_config)
 {
     web::http::client::http_client_config ret;
-    web::web_proxy const proxy = constructProxyFromConfig(proxy_config);
+    web::web_proxy const proxy = tweeteria::detail::constructProxyFromConfig(proxy_config);
     ret.set_proxy(proxy);
     return ret;
 }
@@ -155,7 +134,7 @@ OAuthCredentials OAuthCredentials::deserialize(std::istream& is)
 /* static */
 pplx::task<void> Tweeteria::checkConnectivity(ProxyConfig const& proxy_config, pplx::cancellation_token const& token)
 {
-    auto const web_proxy = constructProxyFromConfig(proxy_config);
+    auto const web_proxy = detail::constructProxyFromConfig(proxy_config);
     web::http::client::http_client_config config;
     config.set_proxy(web_proxy);
     web::http::client::http_client client(Endpoints::twitter_api_endpoint(), config);
@@ -190,7 +169,7 @@ pplx::task<OAuthCredentials> Tweeteria::performOAuthAuthentication(std::string c
         web::http::oauth1::experimental::oauth1_methods::hmac_sha1);
     web::http::oauth1::experimental::oauth1_config& cfg = *cfg_ptr;
 
-    auto const web_proxy = constructProxyFromConfig(proxy_config);
+    auto const web_proxy = detail::constructProxyFromConfig(proxy_config);
     cfg.set_proxy(web_proxy);
 
     return cfg.build_authorization_uri().then([authenticate_cb](utility::string_t const& auth_url)
@@ -208,12 +187,14 @@ pplx::task<OAuthCredentials> Tweeteria::performOAuthAuthentication(std::string c
 
 struct Tweeteria::Pimpl
 {
+    tweeteria::ProxyConfig proxy_config;
     std::shared_ptr<web::http::oauth1::experimental::oauth1_config> oauth_config;
     std::shared_ptr<web::http::oauth1::details::oauth1_handler> oauth_handler;
     web::http::client::http_client http_client;
 
-    Pimpl(OAuthCredentials const& credentials, ProxyConfig const& proxy_config)
-        :oauth_handler(std::make_shared<web::http::oauth1::details::oauth1_handler>(createOAuthConfig(credentials, proxy_config))),
+    Pimpl(OAuthCredentials const& credentials, ProxyConfig const& n_proxy_config)
+        :proxy_config(n_proxy_config),
+         oauth_handler(std::make_shared<web::http::oauth1::details::oauth1_handler>(createOAuthConfig(credentials, proxy_config))),
          http_client(Endpoints::twitter_api_endpoint(), createHttpClientConfig(proxy_config))
     {
         http_client.add_handler(oauth_handler);
@@ -238,6 +219,11 @@ Tweeteria::Tweeteria(OAuthCredentials const& credentials, ProxyConfig const& pro
 Tweeteria::~Tweeteria()
 {
     // required for pimpl
+}
+
+ProxyConfig const& Tweeteria::getProxyConfig() const
+{
+    return m_pimpl->proxy_config;
 }
 
 pplx::task<VerificationResult> Tweeteria::verifyCredentials()

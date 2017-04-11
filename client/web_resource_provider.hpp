@@ -23,6 +23,10 @@
 #include <string>
 #include <vector>
 
+namespace tweeteria {
+struct ProxyConfig;
+}
+
 enum class CachingPolicy {
     DoCache,
     NoCaching
@@ -33,7 +37,7 @@ private:
     struct Pimpl;
     std::unique_ptr<Pimpl> m_pimpl;
 public:
-    WebResourceProvider();
+    WebResourceProvider(tweeteria::ProxyConfig const& proxy_config);
     ~WebResourceProvider();
 
     WebResourceProvider(WebResourceProvider const&) = delete;

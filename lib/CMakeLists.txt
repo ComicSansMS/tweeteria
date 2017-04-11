@@ -38,6 +38,15 @@ set(TWEETERIA_SOURCES
     ${TWEETERIA_SOURCE_DIR}/user.cpp
 )
 
+set(TWEETERIA_DETAIL_HEADERS
+    ${TWEETERIA_INCLUDE_DIR}/tweeteria/detail/proxy_config_util.hpp
+)
+set(TWEETERIA_DETAIL_SOURCES
+    ${TWEETERIA_SOURCE_DIR}/detail/proxy_config_util.cpp
+)
+source_group(detail FILES ${TWEETERIA_DETAIL_HEADERS} ${TWEETERIA_DETAIL_SOURCES})
+
+
 set(TWEETERIA_TEST_DIR ${PROJECT_SOURCE_DIR}/test)
 set(TWEETERIA_TEST_SOURCES
     ${TWEETERIA_TEST_DIR}/tweeteria.t.cpp
@@ -46,7 +55,7 @@ set(TWEETERIA_TEST_SOURCES
     ${TWEETERIA_TEST_DIR}/string_util.t.cpp
 )
 
-add_library(tweeteria ${TWEETERIA_HEADERS} ${TWEETERIA_SOURCES})
+add_library(tweeteria ${TWEETERIA_HEADERS} ${TWEETERIA_SOURCES} ${TWEETERIA_DETAIL_HEADERS} ${TWEETERIA_DETAIL_SOURCES})
 target_include_directories(tweeteria PUBLIC
     ${TWEETERIA_INCLUDE_DIR}
     ${CASABLANCA_INCLUDE_DIRS}

@@ -101,6 +101,8 @@ public:
     Tweeteria(Tweeteria const&) = delete;
     Tweeteria& operator=(Tweeteria const&) = delete;
 
+    ProxyConfig const& getProxyConfig() const;
+
     pplx::task<VerificationResult> verifyCredentials();
 
     MultiPageResult<std::vector<UserId>> getMyFriendsIds();
@@ -131,6 +133,5 @@ public:
                                                                    ProxyConfig const& proxy_config);
 };
 }
-
 
 #endif

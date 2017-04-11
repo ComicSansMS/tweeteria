@@ -17,7 +17,10 @@
  */
 #include <web_resource_provider.hpp>
 
+#include <tweeteria/proxy_config.hpp>
 #include <tweeteria/string_util.hpp>
+
+#include <tweeteria/detail/proxy_config_util.hpp>
 
 #include <gbBase/Assert.hpp>
 
@@ -31,11 +34,13 @@ struct WebResourceProvider::Pimpl
     std::unordered_map<utility::string_t, web::http::client::http_client> connections;
     std::unordered_map<std::string, std::vector<unsigned char>> cache;
     std::vector<pplx::task<void>> tasks;
+    tweeteria::ProxyConfig proxy_config;
 };
 
-WebResourceProvider::WebResourceProvider()
+WebResourceProvider::WebResourceProvider(tweeteria::ProxyConfig const& proxy_config)
     :m_pimpl(new WebResourceProvider::Pimpl())
 {
+    m_pimpl->proxy_config = proxy_config;
 }
 
 WebResourceProvider::~WebResourceProvider()
@@ -57,7 +62,10 @@ void WebResourceProvider::retrieve(std::string const& url, std::function<void(st
     auto it = m_pimpl->connections.find(host_str);
     if(it == end(m_pimpl->connections))
     {
-        auto ret = m_pimpl->connections.emplace(std::make_pair(host_str, host));
+        auto const proxy = tweeteria::detail::constructProxyFromConfig(m_pimpl->proxy_config);
+        web::http::client::http_client_config config;
+        config.set_proxy(proxy);
+        auto ret = m_pimpl->connections.emplace(std::make_pair(host_str, web::http::client::http_client(host, config)));
         GHULBUS_ASSERT(ret.second);
         it = ret.first;
     }

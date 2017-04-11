@@ -34,7 +34,8 @@
 
 CentralWidget::CentralWidget(tweeteria::Tweeteria& tweeteria, DataModel& data_model, QWidget* parent)
     :QWidget(parent), m_tweeteria(&tweeteria), m_dataModel(&data_model),
-     m_webResourceProvider(new WebResourceProvider()), m_imageProvider(new ImageProvider(*m_webResourceProvider)),
+     m_webResourceProvider(new WebResourceProvider(tweeteria.getProxyConfig())),
+     m_imageProvider(new ImageProvider(*m_webResourceProvider)),
      m_centralLayout(QBoxLayout::Direction::LeftToRight), m_sortingComboBox(new QComboBox(this)),
      m_usersList(new UsersList(this, *m_dataModel)), m_rightPaneLayout(QBoxLayout::Direction::TopToBottom),
      m_tweetsList(new TweetsList(this, *m_dataModel)), m_buttonsLayout(QBoxLayout::Direction::LeftToRight),
