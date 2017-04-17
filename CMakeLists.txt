@@ -1,8 +1,21 @@
 cmake_minimum_required(VERSION 3.7)
 
-project(tweeteria)
+project(tweeteria LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(MSVC)
+    option(MULTIPROCESS_BUILD "Enables the /MP compile flag for Visual C++." ON)
+    if(MULTIPROCESS_BUILD)
+        set(MULTIPROCESS_LIMIT_BUILD_PROCESSES 0 CACHE STRING
+            "If set to a positive number, this will be used as an argument to /MP.")
+        if(NOT MULTIPROCESS_LIMIT_BUILD_PROCESSES)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+        else()
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP${MULTIPROCESS_LIMIT_BUILD_PROCESSES}")
+        endif()
+    endif()
+endif()
 
 add_subdirectory(lib)
 
